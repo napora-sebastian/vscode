@@ -1,0 +1,630 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.ai-super-panel {
+	height: 100%;
+}
+
+/* Section Headers */
+.ai-super-panel-section-header {
+	font-weight: bold;
+	font-size: 13px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-section-subheader {
+	font-weight: 600;
+	font-size: 12px;
+	padding: 6px 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* Builder View */
+.ai-super-panel-builder-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.ai-super-panel-graph-area {
+	flex: 1;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	color: var(--vscode-descriptionForeground);
+	border: 1px dashed var(--vscode-panel-border);
+	margin: 8px 12px;
+	border-radius: 4px;
+	min-height: 100px;
+}
+
+.ai-super-panel-graph-placeholder {
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.ai-super-panel-graph-load-button {
+	padding: 6px 12px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.ai-super-panel-controls {
+	padding: 8px 12px;
+	display: flex;
+	gap: 8px;
+}
+
+.ai-super-panel-run-button,
+.ai-super-panel-stop-button {
+	padding: 6px 16px;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.ai-super-panel-stop-button {
+	background: var(--vscode-inputValidation-errorBackground);
+	color: var(--vscode-inputValidation-errorForeground);
+}
+
+.ai-super-panel-run-button:hover {
+	background: var(--vscode-button-hoverBackground);
+}
+
+/* Post-run actions (Phase 1 - open-swe) */
+.ai-super-panel-post-run-actions {
+	padding: 8px 12px;
+	border-top: 1px solid var(--vscode-panel-border);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.ai-super-panel-auto-pr-button,
+.ai-super-panel-spawn-agent-button {
+	padding: 4px 10px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.ai-super-panel-auto-pr-button:hover,
+.ai-super-panel-spawn-agent-button:hover {
+	opacity: 0.85;
+}
+
+/* Embedded Terminal Area (Phase 1) */
+.ai-super-panel-terminal-area {
+	min-height: 80px;
+	border-top: 2px solid var(--vscode-panel-border);
+	background: var(--vscode-terminal-background);
+	display: flex;
+	flex-direction: column;
+}
+
+.ai-super-panel-terminal-header {
+	padding: 4px 12px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--vscode-terminal-foreground);
+	border-bottom: 1px solid var(--vscode-panel-border);
+	background: var(--vscode-terminal-background);
+}
+
+.ai-super-panel-terminal-output {
+	flex: 1;
+	padding: 8px 12px;
+	font-family: var(--vscode-editor-font-family);
+	font-size: 12px;
+	color: var(--vscode-terminal-foreground);
+	white-space: pre-wrap;
+	overflow-y: auto;
+}
+
+/* Sub-agent Buttons */
+.ai-super-panel-subagent-bar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.ai-super-panel-subagent-button {
+	padding: 3px 8px;
+	background: var(--vscode-badge-background);
+	color: var(--vscode-badge-foreground);
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.ai-super-panel-subagent-button:hover {
+	opacity: 0.8;
+}
+
+/* Hooks Status Banner */
+.ai-super-panel-hooks-banner {
+	padding: 6px 12px;
+	background: var(--vscode-editorInfo-background);
+	color: var(--vscode-editorInfo-foreground);
+	font-size: 11px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* API Caller View */
+.ai-super-panel-api-caller-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.ai-super-panel-endpoint-form {
+	padding: 8px 12px;
+	display: flex;
+	gap: 8px;
+}
+
+.ai-super-panel-endpoint-input {
+	flex: 1;
+	padding: 4px 8px;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: 1px solid var(--vscode-input-border);
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.ai-super-panel-endpoint-tree {
+	flex: 1;
+	padding: 8px 12px;
+	overflow-y: auto;
+}
+
+.ai-super-panel-verify-checklist {
+	padding: 8px 12px;
+	border-top: 1px solid var(--vscode-panel-border);
+}
+
+.ai-super-panel-call-button {
+	padding: 6px 12px;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.ai-super-panel-call-button:hover {
+	background: var(--vscode-button-hoverBackground);
+}
+
+/* Traces View */
+.ai-super-panel-traces-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.ai-super-panel-trace-timeline {
+	flex: 1;
+	padding: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* DB Middleware View */
+.ai-super-panel-db-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.ai-super-panel-db-connection-form {
+	padding: 8px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.ai-super-panel-db-type {
+	padding: 4px 8px;
+	background: var(--vscode-dropdown-background);
+	color: var(--vscode-dropdown-foreground);
+	border: 1px solid var(--vscode-dropdown-border);
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.ai-super-panel-db-connection-input {
+	padding: 4px 8px;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: 1px solid var(--vscode-input-border);
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.ai-super-panel-db-connect-button {
+	padding: 6px 12px;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+	align-self: flex-start;
+}
+
+.ai-super-panel-db-query-section {
+	padding: 8px 12px;
+	border-top: 1px solid var(--vscode-panel-border);
+}
+
+.ai-super-panel-db-query-input {
+	width: 100%;
+	padding: 6px 8px;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: 1px solid var(--vscode-input-border);
+	border-radius: 4px;
+	font-size: 12px;
+	font-family: var(--vscode-editor-font-family);
+	resize: vertical;
+	box-sizing: border-box;
+}
+
+.ai-super-panel-db-query-controls {
+	display: flex;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.ai-super-panel-db-run-query,
+.ai-super-panel-db-add-tool {
+	padding: 6px 12px;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.ai-super-panel-db-add-tool {
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+}
+
+/* Skills View */
+.ai-super-panel-skills-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.ai-super-panel-skills-search,
+.ai-super-panel-memory-search {
+	margin: 8px 12px;
+	padding: 4px 8px;
+	background: var(--vscode-input-background);
+	color: var(--vscode-input-foreground);
+	border: 1px solid var(--vscode-input-border);
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.ai-super-panel-skills-grid {
+	flex: 1;
+	padding: 8px 12px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+	gap: 8px;
+	align-content: start;
+	color: var(--vscode-descriptionForeground);
+}
+
+.ai-super-panel-memory-section {
+	border-top: 1px solid var(--vscode-panel-border);
+	margin-top: 8px;
+}
+
+.ai-super-panel-improve-skill {
+	margin: 8px 12px;
+	padding: 6px 12px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.ai-super-panel-improve-skill:hover {
+	opacity: 0.9;
+}
+
+/* Phase 2 – Skill Cards */
+.ai-super-panel-skill-card {
+	padding: 8px 10px;
+	background: var(--vscode-editor-background);
+	border: 1px solid var(--vscode-panel-border);
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 11px;
+	text-align: center;
+	transition: border-color 0.15s;
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-skill-card:hover {
+	border-color: var(--vscode-focusBorder);
+	background: var(--vscode-list-hoverBackground);
+}
+
+/* Phase 2 – Sub-agent section */
+.ai-super-panel-subagent-section {
+	border-bottom: 1px solid var(--vscode-panel-border);
+	padding-bottom: 4px;
+}
+
+/* Phase 2 – Security call button */
+.ai-super-panel-security-call-button {
+	padding: 6px 12px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.ai-super-panel-security-call-button:hover {
+	opacity: 0.85;
+}
+
+/* Phase 3 – hermes-agent: Memory results */
+.ai-super-panel-memory-results {
+	padding: 8px 12px;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+	border: 1px dashed var(--vscode-panel-border);
+	margin: 4px 12px;
+	border-radius: 4px;
+	min-height: 40px;
+}
+
+/* Phase 3 – hermes-agent: Session memory */
+.ai-super-panel-session-memory {
+	border-top: 1px solid var(--vscode-panel-border);
+	margin-top: 8px;
+}
+
+.ai-super-panel-session-memory-content {
+	padding: 6px 12px;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* Phase 3 – hermes-agent: Self-improvement loop */
+.ai-super-panel-self-improve {
+	border-top: 1px solid var(--vscode-panel-border);
+	margin-top: 8px;
+}
+
+.ai-super-panel-self-improve-status {
+	padding: 6px 12px;
+	font-size: 11px;
+	color: var(--vscode-descriptionForeground);
+	background: var(--vscode-editor-background);
+	margin: 4px 12px;
+	border-radius: 4px;
+	border-left: 3px solid var(--vscode-editorInfo-foreground);
+}
+
+/* Phase 4 – Trace filter bar */
+.ai-super-panel-trace-filter-bar {
+	display: flex;
+	gap: 4px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+	flex-wrap: wrap;
+}
+
+.ai-super-panel-trace-filter-button {
+	padding: 3px 8px;
+	background: var(--vscode-badge-background);
+	color: var(--vscode-badge-foreground);
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.ai-super-panel-trace-filter-button:hover {
+	opacity: 0.8;
+}
+
+/* Phase 4 – Trace timeline */
+.ai-super-panel-trace-timeline-header {
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-trace-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 0 12px 8px;
+}
+
+.ai-super-panel-trace-entry {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	background: var(--vscode-editor-background);
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.ai-super-panel-trace-entry:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.ai-super-panel-trace-icon {
+	flex-shrink: 0;
+}
+
+.ai-super-panel-trace-label {
+	font-weight: 600;
+	color: var(--vscode-foreground);
+	min-width: 80px;
+}
+
+.ai-super-panel-trace-detail {
+	flex: 1;
+	color: var(--vscode-descriptionForeground);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ai-super-panel-trace-time {
+	font-size: 10px;
+	color: var(--vscode-descriptionForeground);
+	flex-shrink: 0;
+}
+
+/* Phase 4 – Endpoint tree */
+.ai-super-panel-endpoint-tree {
+	flex: 1;
+	overflow-y: auto;
+}
+
+.ai-super-panel-endpoint-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 0 12px 8px;
+}
+
+.ai-super-panel-endpoint-entry {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 8px;
+	background: var(--vscode-editor-background);
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.ai-super-panel-endpoint-entry:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.ai-super-panel-endpoint-method {
+	font-weight: 700;
+	font-size: 10px;
+	padding: 1px 4px;
+	border-radius: 3px;
+	min-width: 32px;
+	text-align: center;
+}
+
+.ai-super-panel-endpoint-method.method-get {
+	background: var(--vscode-charts-blue);
+	color: var(--vscode-editor-background);
+	opacity: 0.9;
+}
+
+.ai-super-panel-endpoint-method.method-post {
+	background: var(--vscode-charts-green);
+	color: var(--vscode-editor-background);
+	opacity: 0.9;
+}
+
+.ai-super-panel-endpoint-path {
+	font-family: var(--vscode-editor-font-family);
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-endpoint-label {
+	color: var(--vscode-descriptionForeground);
+	margin-left: auto;
+	font-size: 11px;
+}
+
+/* Phase 4 – Verify checklist */
+.ai-super-panel-verify-checklist {
+	padding: 8px 12px;
+	border-top: 1px solid var(--vscode-panel-border);
+}
+
+.ai-super-panel-verify-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 0;
+	font-size: 12px;
+}
+
+.ai-super-panel-verify-checkbox {
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.ai-super-panel-verify-label {
+	color: var(--vscode-foreground);
+}
+
+/* Phase 4 – Run in terminal button */
+.ai-super-panel-run-in-terminal {
+	margin: 8px 12px;
+	padding: 6px 12px;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.ai-super-panel-run-in-terminal:hover {
+	background: var(--vscode-button-hoverBackground);
+}
