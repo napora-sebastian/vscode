@@ -6,10 +6,10 @@
 import { localize, localize2 } from '../../../../nls.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
-import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
 import { Extensions as ViewContainerExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../common/views.js';
 import { AI_SUPER_PANEL_VIEWLET_ID, AI_SUPER_PANEL_BUILDER_VIEW_ID, AI_SUPER_PANEL_API_CALLER_VIEW_ID, AI_SUPER_PANEL_TRACES_VIEW_ID, AI_SUPER_PANEL_DB_MIDDLEWARE_VIEW_ID, AI_SUPER_PANEL_SKILLS_VIEW_ID } from './aiSuperPanel.js';
 import { aiSuperPanelViewIcon, builderTabIcon, apiCallerTabIcon, tracesTabIcon, dbMiddlewareTabIcon, skillsTabIcon } from './aiSuperPanelIcons.js';
+import { AISuperPanelViewPaneContainer } from './aiSuperPanelViewPaneContainer.js';
 import { BuilderViewPane } from './builderViewPane.js';
 import { APICallerViewPane } from './apiCallerViewPane.js';
 import { TracesViewPane } from './tracesViewPane.js';
@@ -30,7 +30,7 @@ const viewsRegistry = Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsR
 const VIEW_CONTAINER = viewContainerRegistry.registerViewContainer({
 	id: AI_SUPER_PANEL_VIEWLET_ID,
 	title: localize2('aiSuperPanel', "AI Super Panel"),
-	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [AI_SUPER_PANEL_VIEWLET_ID, { mergeViewWithContainerWhenSingleView: false }]),
+	ctorDescriptor: new SyncDescriptor(AISuperPanelViewPaneContainer),
 	icon: aiSuperPanelViewIcon,
 	order: 10,
 	openCommandActionDescriptor: {
@@ -187,7 +187,7 @@ registerAction2(class extends Action2 {
 			category: Categories.View,
 			f1: true,
 			keybinding: {
-				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyT,
+				primary: KeyMod.Alt | KeyMod.Shift | KeyCode.KeyT,
 				weight: 200,
 			},
 		});

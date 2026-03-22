@@ -88,6 +88,7 @@ export class SkillsViewPane extends ViewPane {
 		searchBox.setAttribute('placeholder', 'Search 116 skills...');
 
 		// Skills grid with sample skills (Phase 2)
+		// TODO: Replace with actual 116 skills from everything-Claude-code backend integration
 		const skillsGrid = append(content, $('.ai-super-panel-skills-grid'));
 		const sampleSkills = [
 			'Code Generation', 'Bug Detection', 'Refactoring',

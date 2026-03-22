@@ -568,13 +568,15 @@
 }
 
 .ai-super-panel-endpoint-method.method-get {
-	background: #61affe33;
-	color: #61affe;
+	background: var(--vscode-charts-blue);
+	color: var(--vscode-editor-background);
+	opacity: 0.9;
 }
 
 .ai-super-panel-endpoint-method.method-post {
-	background: #49cc9033;
-	color: #49cc90;
+	background: var(--vscode-charts-green);
+	color: var(--vscode-editor-background);
+	opacity: 0.9;
 }
 
 .ai-super-panel-endpoint-path {

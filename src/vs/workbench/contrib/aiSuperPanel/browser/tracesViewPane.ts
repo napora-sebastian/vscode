@@ -70,7 +70,7 @@ export class TracesViewPane extends ViewPane {
 		const timelineHeader = append(timeline, $('.ai-super-panel-trace-timeline-header'));
 		timelineHeader.textContent = '🟢 Live – Waiting for trace events...';
 
-		// Sample trace entries
+		// Sample trace entries (placeholder pending LangSmith service integration)
 		const traceList = append(timeline, $('.ai-super-panel-trace-list'));
 		const sampleTraces = [
 			{ type: '🤖', label: 'Agent Run', detail: 'open-swe graph execution', time: 'Live' },
