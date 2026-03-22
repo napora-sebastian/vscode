@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_VIEW_CONTAINER_ID, AI_SUPER_PANEL_VIEW_ID } from '../../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_CONTAINER_ID, AI_SUPER_PANEL_VIEW_ID, shouldShowPhase2SubAgentBar } from '../../common/aiSuperPanel.js';
 import '../../browser/aiSuperPanel.contribution.js';
 import { aiSuperPanelMessageBridge } from '../../browser/aiSuperPanelMessageBridge.js';
 
@@ -39,6 +39,28 @@ suite('AI Super Panel Contribution', () => {
 			'Traces',
 			'DB Middleware',
 			'Skills',
+		]);
+	});
+
+	test('defines phase 2 sub-agent quick actions', () => {
+		assert.strictEqual(AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length, 28);
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE2_SUB_AGENTS.slice(0, 3), [
+			'Security Reviewer',
+			'Database Reviewer',
+			'API Reviewer',
+		]);
+		assert.ok(AI_SUPER_PANEL_PHASE2_SUB_AGENTS.every(name => name.length > 0));
+	});
+
+	test('shows phase 2 sub-agent bar only for Builder and Chat tabs', () => {
+		const visibility = AI_SUPER_PANEL_PHASE0_TABS.map(tab => [tab, shouldShowPhase2SubAgentBar(tab)]);
+		assert.deepStrictEqual(visibility, [
+			['Builder', true],
+			['Chat', true],
+			['API Caller', false],
+			['Traces', false],
+			['DB Middleware', false],
+			['Skills', false],
 		]);
 	});
 
@@ -190,5 +212,11 @@ suite('AI Super Panel Contribution', () => {
 			message: 'Queued spawnSubAgents for backend handling.',
 			command: 'spawnSubAgents',
 		});
+	});
+
+	test('message bridge exposes phase 2 sub-agents', () => {
+		const subAgents = aiSuperPanelMessageBridge.getPhase2SubAgents();
+		assert.strictEqual(subAgents.length, 28);
+		assert.deepStrictEqual(subAgents, AI_SUPER_PANEL_PHASE2_SUB_AGENTS);
 	});
 });

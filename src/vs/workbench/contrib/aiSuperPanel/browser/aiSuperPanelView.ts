@@ -21,7 +21,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelTab } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelTab, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 export class AISuperPanelView extends ViewPane {
@@ -59,6 +59,14 @@ export class AISuperPanelView extends ViewPane {
 		tabList.style.flexWrap = 'wrap';
 		tabList.style.gap = '6px';
 		tabList.style.padding = '2px 0';
+
+		const subAgentBar = document.createElement('div');
+		subAgentBar.setAttribute('role', 'toolbar');
+		subAgentBar.setAttribute('aria-label', localize('aiSuperPanelSubAgentBarLabel', "AI Super Panel Sub-agent Quick Actions"));
+		subAgentBar.style.display = 'none';
+		subAgentBar.style.flexWrap = 'wrap';
+		subAgentBar.style.gap = '6px';
+		subAgentBar.style.padding = '2px 0';
 
 		let activeTab: AISuperPanelTab = AI_SUPER_PANEL_PHASE0_TABS[0];
 		const tabButtons = new Map<AISuperPanelTab, HTMLButtonElement>();
@@ -173,6 +181,7 @@ export class AISuperPanelView extends ViewPane {
 			if (tab !== 'Builder') {
 				postRunActionBar.style.display = 'none';
 			}
+			subAgentBar.style.display = shouldShowPhase2SubAgentBar(tab) ? 'flex' : 'none';
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
 			if (focusSelectedTab) {
 				status(localize('aiSuperPanelTabChangedAria', "Switched to {0} tab.", tab));
@@ -254,6 +263,22 @@ export class AISuperPanelView extends ViewPane {
 			tabButtons.set(tabName, tabButton);
 		}
 
+		for (const subAgentName of aiSuperPanelMessageBridge.getPhase2SubAgents()) {
+			const subAgentButton = document.createElement('button');
+			subAgentButton.type = 'button';
+			subAgentButton.textContent = subAgentName;
+			subAgentButton.style.padding = '2px 6px';
+			subAgentButton.style.border = '1px solid var(--vscode-panel-border)';
+			subAgentButton.style.borderRadius = '4px';
+			subAgentButton.style.background = 'var(--vscode-editor-background)';
+			subAgentButton.style.color = 'var(--vscode-foreground)';
+			subAgentButton.setAttribute('aria-label', localize('aiSuperPanelSubAgentButtonAria', "Run sub-agent {0}", subAgentName));
+			this._register(addDisposableListener(subAgentButton, 'click', () => {
+				commandStatus.textContent = localize('aiSuperPanelSubAgentQueued', "Queued sub-agent: {0}", subAgentName);
+			}));
+			subAgentBar.appendChild(subAgentButton);
+		}
+
 		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
 		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call & Verify")));
 		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
@@ -275,6 +300,7 @@ export class AISuperPanelView extends ViewPane {
 		layout.appendChild(bottomPane);
 
 		root.appendChild(tabList);
+		root.appendChild(subAgentBar);
 		root.appendChild(layout);
 		container.appendChild(root);
 		setBuilderGraph();
@@ -295,6 +321,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
+			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
 			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),
