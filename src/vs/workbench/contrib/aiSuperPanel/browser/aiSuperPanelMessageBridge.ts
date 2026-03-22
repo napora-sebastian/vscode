@@ -5,7 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommandMessage, AISuperPanelCommandResult } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelTerminalCommandResult } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
@@ -63,6 +63,30 @@ class AISuperPanelMessageBridge extends Disposable {
 				'status:pass',
 				'trace:opened',
 			],
+		};
+	}
+
+	runTerminalCommand(rawCommand: string): AISuperPanelTerminalCommandResult {
+		const normalized = rawCommand.trim();
+		const match = normalized.match(/^\/openswe\s+run\s+"(.+)"$/);
+		if (!match) {
+			return {
+				accepted: false,
+				output: ['terminal:error: unsupported command'],
+			};
+		}
+
+		const task = match[1].trim();
+		if (!task) {
+			return {
+				accepted: false,
+				output: ['terminal:error: missing task'],
+			};
+		}
+
+		return {
+			accepted: true,
+			output: this.runBuilderTask(task),
 		};
 	}
 }

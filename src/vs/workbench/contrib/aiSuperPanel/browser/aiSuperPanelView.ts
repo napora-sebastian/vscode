@@ -130,6 +130,30 @@ export class AISuperPanelView extends ViewPane {
 		terminalLog.textContent = '';
 		bottomPane.appendChild(terminalLog);
 
+		const terminalInputRow = document.createElement('div');
+		terminalInputRow.style.display = 'flex';
+		terminalInputRow.style.gap = '8px';
+		terminalInputRow.style.marginTop = '8px';
+		bottomPane.appendChild(terminalInputRow);
+
+		const terminalInput = document.createElement('input');
+		terminalInput.type = 'text';
+		terminalInput.placeholder = localize('aiSuperPanelTerminalInputPlaceholder', "/openswe run \"task\"");
+		terminalInput.style.flex = '1';
+		terminalInput.setAttribute('aria-label', localize('aiSuperPanelTerminalInputLabel', "AI Super Panel terminal command input"));
+		terminalInputRow.appendChild(terminalInput);
+
+		const terminalRunButton = document.createElement('button');
+		terminalRunButton.type = 'button';
+		terminalRunButton.textContent = localize('aiSuperPanelTerminalRunButton', "Run in Terminal");
+		terminalRunButton.style.padding = '4px 8px';
+		terminalRunButton.style.border = '1px solid var(--vscode-panel-border)';
+		terminalRunButton.style.borderRadius = '4px';
+		terminalRunButton.style.background = 'var(--vscode-button-background)';
+		terminalRunButton.style.color = 'var(--vscode-button-foreground)';
+		terminalRunButton.setAttribute('aria-label', localize('aiSuperPanelTerminalRunButtonAria', "Run terminal command"));
+		terminalInputRow.appendChild(terminalRunButton);
+
 		const setActiveTab = (tab: AISuperPanelTab, focusSelectedTab = false) => {
 			activeTab = tab;
 			for (const [name, button] of tabButtons) {
@@ -154,6 +178,17 @@ export class AISuperPanelView extends ViewPane {
 		const appendTerminalLines = (lines: readonly string[]) => {
 			const existing = terminalLog.textContent ? `${terminalLog.textContent}\n` : '';
 			terminalLog.textContent = `${existing}${lines.join('\n')}`;
+		};
+
+		const executeTerminalCommand = () => {
+			const terminalResult = aiSuperPanelMessageBridge.runTerminalCommand(terminalInput.value);
+			appendTerminalLines([
+				`terminal:input:${terminalInput.value}`,
+				...terminalResult.output,
+			]);
+			commandStatus.textContent = terminalResult.accepted
+				? localize('aiSuperPanelTerminalCommandAccepted', "Terminal command accepted.")
+				: localize('aiSuperPanelTerminalCommandRejected', "Terminal command rejected.");
 		};
 
 		const createActionButton = (command: AISuperPanelCommand, label: string) => {
@@ -211,6 +246,12 @@ export class AISuperPanelView extends ViewPane {
 		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
 		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call & Verify")));
 		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
+		this._register(addDisposableListener(terminalRunButton, 'click', () => executeTerminalCommand()));
+		this._register(addDisposableListener(terminalInput, 'keydown', event => {
+			if (event.key === 'Enter') {
+				executeTerminalCommand();
+			}
+		}));
 
 		const layout = document.createElement('div');
 		layout.style.display = 'flex';
@@ -242,6 +283,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
+			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),
 		].join('\n');
 

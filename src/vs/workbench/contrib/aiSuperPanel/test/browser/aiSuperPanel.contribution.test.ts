@@ -130,4 +130,30 @@ suite('AI Super Panel Contribution', () => {
 			],
 		});
 	});
+
+	test('message bridge supports /openswe run terminal command scaffold', () => {
+		const success = aiSuperPanelMessageBridge.runTerminalCommand('/openswe run "ship phase 1"');
+		assert.deepStrictEqual(success, {
+			accepted: true,
+			output: [
+				'openswe:start:ship phase 1',
+				'openswe:plan',
+				'openswe:execute',
+				'openswe:verify',
+				'openswe:done',
+			],
+		});
+
+		const missingTask = aiSuperPanelMessageBridge.runTerminalCommand('/openswe run ""');
+		assert.deepStrictEqual(missingTask, {
+			accepted: false,
+			output: ['terminal:error: unsupported command'],
+		});
+
+		const unsupported = aiSuperPanelMessageBridge.runTerminalCommand('/other run "task"');
+		assert.deepStrictEqual(unsupported, {
+			accepted: false,
+			output: ['terminal:error: unsupported command'],
+		});
+	});
 });

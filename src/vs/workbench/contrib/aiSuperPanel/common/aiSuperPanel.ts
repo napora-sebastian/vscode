@@ -36,3 +36,8 @@ export interface AISuperPanelApiVerificationResult {
 	readonly traceId: string;
 	readonly checks: readonly string[];
 }
+
+export interface AISuperPanelTerminalCommandResult {
+	readonly accepted: boolean;
+	readonly output: readonly string[];
+}
