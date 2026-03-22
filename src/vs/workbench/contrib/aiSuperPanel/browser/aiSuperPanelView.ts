@@ -283,7 +283,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
-			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands."),
+			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),
 		].join('\n');
 

@@ -147,7 +147,13 @@ suite('AI Super Panel Contribution', () => {
 		const missingTask = aiSuperPanelMessageBridge.runTerminalCommand('/openswe run ""');
 		assert.deepStrictEqual(missingTask, {
 			accepted: false,
-			output: ['terminal:error: unsupported command'],
+			output: ['terminal:error: task cannot be empty'],
+		});
+
+		const whitespaceTask = aiSuperPanelMessageBridge.runTerminalCommand('/openswe run "   "');
+		assert.deepStrictEqual(whitespaceTask, {
+			accepted: false,
+			output: ['terminal:error: task cannot be empty'],
 		});
 
 		const unsupported = aiSuperPanelMessageBridge.runTerminalCommand('/other run "task"');

@@ -80,10 +80,9 @@ class AISuperPanelMessageBridge extends Disposable {
 		if (!task) {
 			return {
 				accepted: false,
-				output: ['terminal:error: missing task'],
+				output: ['terminal:error: task cannot be empty'],
 			};
 		}
-
 		return {
 			accepted: true,
 			output: this.runBuilderTask(task),
