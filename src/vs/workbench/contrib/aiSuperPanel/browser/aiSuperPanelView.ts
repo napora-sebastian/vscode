@@ -82,6 +82,12 @@ export class AISuperPanelView extends ViewPane {
 		actionBar.style.marginTop = '8px';
 		topPane.appendChild(actionBar);
 
+		const postRunActionBar = document.createElement('div');
+		postRunActionBar.style.display = 'none';
+		postRunActionBar.style.gap = '8px';
+		postRunActionBar.style.marginTop = '8px';
+		topPane.appendChild(postRunActionBar);
+
 		const builderGraphRegion = document.createElement('div');
 		builderGraphRegion.setAttribute('role', 'region');
 		builderGraphRegion.setAttribute('aria-label', localize('aiSuperPanelBuilderGraphRegion', "AI Super Panel Builder Graph"));
@@ -164,6 +170,9 @@ export class AISuperPanelView extends ViewPane {
 					button.focus();
 				}
 			}
+			if (tab !== 'Builder') {
+				postRunActionBar.style.display = 'none';
+			}
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
 			if (focusSelectedTab) {
 				status(localize('aiSuperPanelTabChangedAria', "Switched to {0} tab.", tab));
@@ -201,7 +210,6 @@ export class AISuperPanelView extends ViewPane {
 			button.style.background = 'var(--vscode-button-background)';
 			button.style.color = 'var(--vscode-button-foreground)';
 			this._register(addDisposableListener(button, 'click', () => {
-				const endpointOrTask = apiInput.value.trim();
 				const result = aiSuperPanelMessageBridge.sendMessage({
 					command,
 					tab: activeTab,
@@ -209,11 +217,14 @@ export class AISuperPanelView extends ViewPane {
 				});
 
 				if (command === 'runAgent') {
+					const endpointOrTask = apiInput.value.trim();
 					appendTerminalLines(aiSuperPanelMessageBridge.runBuilderTask(endpointOrTask));
+					postRunActionBar.style.display = 'flex';
 					commandStatus.textContent = result.message;
 					return;
 				}
 				if (command === 'callApi') {
+					const endpointOrTask = apiInput.value.trim();
 					const verification = aiSuperPanelMessageBridge.callAndVerify(endpointOrTask);
 					appendTerminalLines([
 						`api:call:${endpointOrTask}`,
@@ -246,6 +257,8 @@ export class AISuperPanelView extends ViewPane {
 		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
 		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call & Verify")));
 		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
+		postRunActionBar.appendChild(createActionButton('createAutoPr', localize('aiSuperPanelCreateAutoPr', "Create Auto-PR")));
+		postRunActionBar.appendChild(createActionButton('spawnSubAgents', localize('aiSuperPanelSpawnSubAgents', "Spawn Sub-agents")));
 		this._register(addDisposableListener(terminalRunButton, 'click', () => executeTerminalCommand()));
 		this._register(addDisposableListener(terminalInput, 'keydown', event => {
 			if (event.key === 'Enter') {
@@ -282,6 +295,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
+			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
 			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),

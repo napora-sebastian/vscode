@@ -162,4 +162,33 @@ suite('AI Super Panel Contribution', () => {
 			output: ['terminal:error: unsupported command'],
 		});
 	});
+
+	test('message bridge exposes post-run actions and accepts related commands', () => {
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPostRunActions(), [
+			'createAutoPr',
+			'spawnSubAgents',
+		]);
+
+		const autoPrResult = aiSuperPanelMessageBridge.sendMessage({
+			command: 'createAutoPr',
+			tab: 'Builder',
+			source: 'aiSuperPanel',
+		});
+		assert.deepStrictEqual(autoPrResult, {
+			accepted: true,
+			message: 'Queued createAutoPr for backend handling.',
+			command: 'createAutoPr',
+		});
+
+		const subAgentResult = aiSuperPanelMessageBridge.sendMessage({
+			command: 'spawnSubAgents',
+			tab: 'Builder',
+			source: 'aiSuperPanel',
+		});
+		assert.deepStrictEqual(subAgentResult, {
+			accepted: true,
+			message: 'Queued spawnSubAgents for backend handling.',
+			command: 'spawnSubAgents',
+		});
+	});
 });

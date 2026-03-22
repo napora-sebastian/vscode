@@ -17,7 +17,7 @@ export const AI_SUPER_PANEL_PHASE0_TABS = [
 
 export type AISuperPanelTab = typeof AI_SUPER_PANEL_PHASE0_TABS[number];
 
-export type AISuperPanelCommand = 'runAgent' | 'callApi' | 'improveSkill';
+export type AISuperPanelCommand = 'runAgent' | 'callApi' | 'improveSkill' | 'createAutoPr' | 'spawnSubAgents';
 
 export interface AISuperPanelCommandMessage {
 	readonly command: AISuperPanelCommand;

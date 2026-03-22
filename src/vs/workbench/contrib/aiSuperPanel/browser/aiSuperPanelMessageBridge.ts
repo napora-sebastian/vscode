@@ -5,7 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelTerminalCommandResult } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelTerminalCommandResult } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
@@ -51,6 +51,13 @@ class AISuperPanelMessageBridge extends Disposable {
 			'openswe:execute',
 			'openswe:verify',
 			'openswe:done',
+		];
+	}
+
+	getPostRunActions(): readonly AISuperPanelCommand[] {
+		return [
+			'createAutoPr',
+			'spawnSubAgents',
 		];
 	}
 
