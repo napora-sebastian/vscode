@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getActiveElement } from '../../../../base/browser/dom.js';
+import { addDisposableListener, getActiveElement } from '../../../../base/browser/dom.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -118,14 +118,14 @@ export class AISuperPanelView extends ViewPane {
 			button.style.borderRadius = '4px';
 			button.style.background = 'var(--vscode-button-background)';
 			button.style.color = 'var(--vscode-button-foreground)';
-			button.addEventListener('click', () => {
+			this._register(addDisposableListener(button, 'click', () => {
 				const result = aiSuperPanelMessageBridge.sendMessage({
 					command,
 					tab: activeTab,
 					source: 'aiSuperPanel',
 				});
 				commandStatus.textContent = result.message;
-			});
+			}));
 			return button;
 		};
 
@@ -139,7 +139,7 @@ export class AISuperPanelView extends ViewPane {
 			tabButton.style.borderRadius = '4px';
 			tabButton.style.background = 'var(--vscode-editor-background)';
 			tabButton.style.color = 'var(--vscode-foreground)';
-			tabButton.addEventListener('click', () => setActiveTab(tabName));
+			this._register(addDisposableListener(tabButton, 'click', () => setActiveTab(tabName)));
 			tabList.appendChild(tabButton);
 			tabButtons.set(tabName, tabButton);
 		}

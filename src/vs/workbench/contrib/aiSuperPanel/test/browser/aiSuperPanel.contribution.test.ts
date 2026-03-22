@@ -55,4 +55,20 @@ suite('AI Super Panel Contribution', () => {
 			command: 'runAgent',
 		});
 	});
+
+	test('message bridge emits command message events', () => {
+		let emittedCommand: string | undefined;
+		const disposable = aiSuperPanelMessageBridge.onDidSendMessage(message => {
+			emittedCommand = message.command;
+		});
+
+		aiSuperPanelMessageBridge.sendMessage({
+			command: 'callApi',
+			tab: 'API Caller',
+			source: 'aiSuperPanel',
+		});
+
+		disposable.dispose();
+		assert.strictEqual(emittedCommand, 'callApi');
+	});
 });
