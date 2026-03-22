@@ -176,3 +176,57 @@ registerAction2(class extends Action2 {
 		await viewsService.openView(AI_SUPER_PANEL_SKILLS_VIEW_ID, true);
 	}
 });
+
+// --- Phase 5: Final Polish & Copilot Parity ---
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'aiSuperPanel.focusTerminal',
+			title: localize2('aiSuperPanel.focusTerminal', "Focus AI Super Panel: Embedded Terminal"),
+			category: Categories.View,
+			f1: true,
+			keybinding: {
+				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyT,
+				weight: 200,
+			},
+		});
+	}
+	async run(accessor: ServicesAccessor): Promise<void> {
+		const viewsService = accessor.get(IViewsService);
+		await viewsService.openView(AI_SUPER_PANEL_BUILDER_VIEW_ID, true);
+	}
+});
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'aiSuperPanel.focusAPICaller',
+			title: localize2('aiSuperPanel.focusAPICaller', "Focus AI Super Panel: API Caller"),
+			category: Categories.View,
+			f1: true,
+		});
+	}
+	async run(accessor: ServicesAccessor): Promise<void> {
+		const viewsService = accessor.get(IViewsService);
+		await viewsService.openView(AI_SUPER_PANEL_API_CALLER_VIEW_ID, true);
+	}
+});
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'aiSuperPanel.askFromEditor',
+			title: localize2('aiSuperPanel.askFromEditor', "Ask AI Super Panel"),
+			category: Categories.View,
+			f1: true,
+			metadata: {
+				description: localize2('aiSuperPanel.askFromEditor.description', "Open AI Super Panel with the current editor context"),
+			},
+		});
+	}
+	async run(accessor: ServicesAccessor): Promise<void> {
+		const viewsService = accessor.get(IViewsService);
+		await viewsService.openViewContainer(AI_SUPER_PANEL_VIEWLET_ID);
+	}
+});
