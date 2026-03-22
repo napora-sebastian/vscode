@@ -5,6 +5,7 @@
 
 import { addDisposableListener, getActiveElement } from '../../../../base/browser/dom.js';
 import { status } from '../../../../base/browser/ui/aria/aria.js';
+import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -21,8 +22,10 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelTab, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelTab, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
+
+const SKILLS_SEARCH_DEBOUNCE_MS = 200;
 
 export class AISuperPanelView extends ViewPane {
 
@@ -76,6 +79,36 @@ export class AISuperPanelView extends ViewPane {
 		contentLabel.setAttribute('role', 'note');
 		contentLabel.style.padding = '4px 0';
 
+		const skillsSection = document.createElement('div');
+		skillsSection.setAttribute('role', 'region');
+		skillsSection.setAttribute('aria-label', localize('aiSuperPanelSkillsSectionLabel', "AI Super Panel Skills"));
+		skillsSection.style.display = 'none';
+		skillsSection.style.marginTop = '8px';
+		skillsSection.style.padding = '8px';
+		skillsSection.style.border = '1px solid var(--vscode-panel-border)';
+		skillsSection.style.borderRadius = '4px';
+
+		const skillsSearch = document.createElement('input');
+		skillsSearch.type = 'text';
+		skillsSearch.placeholder = localize('aiSuperPanelSkillsSearchPlaceholder', "Search skills");
+		skillsSearch.setAttribute('aria-label', localize('aiSuperPanelSkillsSearchAria', "Search AI Super Panel skills"));
+		skillsSearch.style.width = '100%';
+		skillsSearch.style.boxSizing = 'border-box';
+		skillsSection.appendChild(skillsSearch);
+
+		const skillsCount = document.createElement('div');
+		skillsCount.style.marginTop = '8px';
+		skillsCount.setAttribute('role', 'status');
+		skillsSection.appendChild(skillsCount);
+
+		const skillsGrid = document.createElement('div');
+		skillsGrid.style.display = 'grid';
+		skillsGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
+		skillsGrid.style.gap = '6px';
+		skillsGrid.style.marginTop = '8px';
+		skillsSection.appendChild(skillsGrid);
+		let latestSkillsQuery = '';
+
 		const topPane = document.createElement('div');
 		topPane.style.flex = '7';
 		topPane.style.minHeight = '0';
@@ -89,6 +122,7 @@ export class AISuperPanelView extends ViewPane {
 		actionBar.style.gap = '8px';
 		actionBar.style.marginTop = '8px';
 		topPane.appendChild(actionBar);
+		topPane.appendChild(skillsSection);
 
 		const postRunActionBar = document.createElement('div');
 		postRunActionBar.style.display = 'none';
@@ -182,6 +216,7 @@ export class AISuperPanelView extends ViewPane {
 				postRunActionBar.style.display = 'none';
 			}
 			subAgentBar.style.display = shouldShowPhase2SubAgentBar(tab) ? 'flex' : 'none';
+			skillsSection.style.display = shouldShowPhase2SkillsGrid(tab) ? 'block' : 'none';
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
 			if (focusSelectedTab) {
 				status(localize('aiSuperPanelTabChangedAria', "Switched to {0} tab.", tab));
@@ -197,6 +232,27 @@ export class AISuperPanelView extends ViewPane {
 			const existing = terminalLog.textContent ? `${terminalLog.textContent}\n` : '';
 			terminalLog.textContent = `${existing}${lines.join('\n')}`;
 		};
+
+		const renderSkillsGrid = (query = '') => {
+			const skills = aiSuperPanelMessageBridge.getPhase2Skills(query);
+			skillsCount.textContent = localize('aiSuperPanelSkillsCount', "{0} of {1} skills shown.", skills.length, AI_SUPER_PANEL_PHASE2_SKILLS.length);
+			const skillItemsFragment = document.createDocumentFragment();
+			for (const skill of skills) {
+				const skillItem = document.createElement('button');
+				skillItem.type = 'button';
+				skillItem.textContent = skill;
+				skillItem.dataset.skillName = skill;
+				skillItem.style.padding = '4px 8px';
+				skillItem.style.border = '1px solid var(--vscode-panel-border)';
+				skillItem.style.borderRadius = '4px';
+				skillItem.style.background = 'var(--vscode-editor-background)';
+				skillItem.style.color = 'var(--vscode-foreground)';
+				skillItem.setAttribute('aria-label', localize('aiSuperPanelSkillItemAria', "Skill {0}", skill));
+				skillItemsFragment.appendChild(skillItem);
+			}
+			skillsGrid.replaceChildren(skillItemsFragment);
+		};
+		const skillsSearchScheduler = this._register(new RunOnceScheduler(() => renderSkillsGrid(latestSkillsQuery), SKILLS_SEARCH_DEBOUNCE_MS));
 
 		const executeTerminalCommand = () => {
 			const terminalResult = aiSuperPanelMessageBridge.runTerminalCommand(terminalInput.value);
@@ -290,6 +346,20 @@ export class AISuperPanelView extends ViewPane {
 				executeTerminalCommand();
 			}
 		}));
+		this._register(addDisposableListener(skillsGrid, 'click', event => {
+			const target = event.target as HTMLElement | null;
+			const skillButton = target?.closest('button');
+			const skillName = skillButton?.dataset.skillName;
+			if (skillName) {
+				const selectedSkillMessage = localize('aiSuperPanelSkillSelected', "Selected skill: {0}", skillName);
+				commandStatus.textContent = selectedSkillMessage;
+				status(selectedSkillMessage);
+			}
+		}));
+		this._register(addDisposableListener(skillsSearch, 'input', () => {
+			latestSkillsQuery = skillsSearch.value;
+			skillsSearchScheduler.schedule();
+		}));
 
 		const layout = document.createElement('div');
 		layout.style.display = 'flex';
@@ -304,6 +374,7 @@ export class AISuperPanelView extends ViewPane {
 		root.appendChild(layout);
 		container.appendChild(root);
 		setBuilderGraph();
+		renderSkillsGrid();
 		setActiveTab(activeTab);
 	}
 }
@@ -322,6 +393,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
+			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
 			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),

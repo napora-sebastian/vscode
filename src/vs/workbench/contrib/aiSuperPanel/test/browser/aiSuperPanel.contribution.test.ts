@@ -6,7 +6,16 @@
 import assert from 'assert';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_CONTAINER_ID, AI_SUPER_PANEL_VIEW_ID, shouldShowPhase2SubAgentBar } from '../../common/aiSuperPanel.js';
+import {
+	AI_SUPER_PANEL_PHASE0_TABS,
+	AI_SUPER_PANEL_PHASE2_SKILLS,
+	AI_SUPER_PANEL_PHASE2_SUB_AGENTS,
+	AI_SUPER_PANEL_VIEW_CONTAINER_ID,
+	AI_SUPER_PANEL_VIEW_ID,
+	filterPhase2Skills,
+	shouldShowPhase2SkillsGrid,
+	shouldShowPhase2SubAgentBar
+} from '../../common/aiSuperPanel.js';
 import '../../browser/aiSuperPanel.contribution.js';
 import { aiSuperPanelMessageBridge } from '../../browser/aiSuperPanelMessageBridge.js';
 
@@ -52,6 +61,16 @@ suite('AI Super Panel Contribution', () => {
 		assert.ok(AI_SUPER_PANEL_PHASE2_SUB_AGENTS.every(name => name.length > 0));
 	});
 
+	test('defines phase 2 searchable skills catalog', () => {
+		assert.strictEqual(AI_SUPER_PANEL_PHASE2_SKILLS.length, 116);
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE2_SKILLS.slice(0, 3), [
+			'Security Scan',
+			'Database Review',
+			'API Contract Verification',
+		]);
+		assert.ok(AI_SUPER_PANEL_PHASE2_SKILLS.every(skill => skill.length > 0));
+	});
+
 	test('shows phase 2 sub-agent bar only for Builder and Chat tabs', () => {
 		const visibility = AI_SUPER_PANEL_PHASE0_TABS.map(tab => [tab, shouldShowPhase2SubAgentBar(tab)]);
 		assert.deepStrictEqual(visibility, [
@@ -62,6 +81,30 @@ suite('AI Super Panel Contribution', () => {
 			['DB Middleware', false],
 			['Skills', false],
 		]);
+	});
+
+	test('shows phase 2 skills grid only for Skills tab', () => {
+		const visibility = AI_SUPER_PANEL_PHASE0_TABS.map(tab => [tab, shouldShowPhase2SkillsGrid(tab)]);
+		assert.deepStrictEqual(visibility, [
+			['Builder', false],
+			['Chat', false],
+			['API Caller', false],
+			['Traces', false],
+			['DB Middleware', false],
+			['Skills', true],
+		]);
+	});
+
+	test('filters phase 2 skills by case-insensitive query', () => {
+		assert.deepStrictEqual(filterPhase2Skills(''), AI_SUPER_PANEL_PHASE2_SKILLS);
+		assert.deepStrictEqual(filterPhase2Skills('security'), ['Security Scan']);
+		assert.deepStrictEqual(filterPhase2Skills('  security  '), ['Security Scan']);
+		assert.deepStrictEqual(filterPhase2Skills('review'), [
+			'Database Review',
+			'Accessibility Review',
+		]);
+		assert.deepStrictEqual(filterPhase2Skills('skill library item 10'), ['Skill Library Item 10']);
+		assert.deepStrictEqual(filterPhase2Skills('not-found-term'), []);
 	});
 
 	test('message bridge accepts placeholder commands', () => {
@@ -218,5 +261,12 @@ suite('AI Super Panel Contribution', () => {
 		const subAgents = aiSuperPanelMessageBridge.getPhase2SubAgents();
 		assert.strictEqual(subAgents.length, 28);
 		assert.deepStrictEqual(subAgents, AI_SUPER_PANEL_PHASE2_SUB_AGENTS);
+	});
+
+	test('message bridge exposes searchable phase 2 skills', () => {
+		const allSkills = aiSuperPanelMessageBridge.getPhase2Skills();
+		assert.strictEqual(allSkills.length, 116);
+		assert.deepStrictEqual(allSkills, AI_SUPER_PANEL_PHASE2_SKILLS);
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase2Skills('security'), ['Security Scan']);
 	});
 });
