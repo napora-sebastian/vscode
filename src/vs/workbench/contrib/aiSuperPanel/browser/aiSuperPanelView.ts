@@ -20,7 +20,8 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelTab } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelTab } from '../common/aiSuperPanel.js';
+import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 export class AISuperPanelView extends ViewPane {
 
@@ -74,6 +75,18 @@ export class AISuperPanelView extends ViewPane {
 		topPane.style.borderRadius = '4px';
 		topPane.style.overflow = 'auto';
 		topPane.appendChild(contentLabel);
+		const actionBar = document.createElement('div');
+		actionBar.style.display = 'flex';
+		actionBar.style.gap = '8px';
+		actionBar.style.marginTop = '8px';
+		topPane.appendChild(actionBar);
+
+		const commandStatus = document.createElement('div');
+		commandStatus.tabIndex = 0;
+		commandStatus.setAttribute('role', 'status');
+		commandStatus.style.marginTop = '8px';
+		commandStatus.textContent = localize('aiSuperPanelCommandStatusIdle', "No command queued.");
+		topPane.appendChild(commandStatus);
 
 		const bottomPane = document.createElement('div');
 		bottomPane.style.flex = '3';
@@ -96,6 +109,26 @@ export class AISuperPanelView extends ViewPane {
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
 		};
 
+		const createActionButton = (command: AISuperPanelCommand, label: string) => {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.textContent = label;
+			button.style.padding = '4px 8px';
+			button.style.border = '1px solid var(--vscode-panel-border)';
+			button.style.borderRadius = '4px';
+			button.style.background = 'var(--vscode-button-background)';
+			button.style.color = 'var(--vscode-button-foreground)';
+			button.addEventListener('click', () => {
+				const result = aiSuperPanelMessageBridge.sendMessage({
+					command,
+					tab: activeTab,
+					source: 'aiSuperPanel',
+				});
+				commandStatus.textContent = result.message;
+			});
+			return button;
+		};
+
 		for (const tabName of AI_SUPER_PANEL_PHASE0_TABS) {
 			const tabButton = document.createElement('button');
 			tabButton.type = 'button';
@@ -110,6 +143,10 @@ export class AISuperPanelView extends ViewPane {
 			tabList.appendChild(tabButton);
 			tabButtons.set(tabName, tabButton);
 		}
+
+		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
+		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call API")));
+		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
 
 		const layout = document.createElement('div');
 		layout.style.display = 'flex';
@@ -138,6 +175,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.header', "Accessibility Help: AI Super Panel"),
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
+			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call API, or Improve Skill buttons to queue placeholder messages for backend handling."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),
 		].join('\n');
 

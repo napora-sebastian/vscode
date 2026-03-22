@@ -16,3 +16,17 @@ export const AI_SUPER_PANEL_PHASE0_TABS = [
 ] as const;
 
 export type AISuperPanelTab = typeof AI_SUPER_PANEL_PHASE0_TABS[number];
+
+export type AISuperPanelCommand = 'runAgent' | 'callApi' | 'improveSkill';
+
+export interface AISuperPanelCommandMessage {
+	readonly command: AISuperPanelCommand;
+	readonly tab: AISuperPanelTab;
+	readonly source: 'aiSuperPanel';
+}
+
+export interface AISuperPanelCommandResult {
+	readonly accepted: boolean;
+	readonly message: string;
+	readonly command: AISuperPanelCommand;
+}

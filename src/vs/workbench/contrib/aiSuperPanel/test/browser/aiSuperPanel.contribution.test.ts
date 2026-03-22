@@ -8,6 +8,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_VIEW_CONTAINER_ID, AI_SUPER_PANEL_VIEW_ID } from '../../common/aiSuperPanel.js';
 import '../../browser/aiSuperPanel.contribution.js';
+import { aiSuperPanelMessageBridge } from '../../browser/aiSuperPanelMessageBridge.js';
 
 suite('AI Super Panel Contribution', () => {
 	test('registers view container in sidebar', () => {
@@ -39,5 +40,19 @@ suite('AI Super Panel Contribution', () => {
 			'DB Middleware',
 			'Skills',
 		]);
+	});
+
+	test('message bridge accepts placeholder commands', () => {
+		const result = aiSuperPanelMessageBridge.sendMessage({
+			command: 'runAgent',
+			tab: 'Builder',
+			source: 'aiSuperPanel',
+		});
+
+		assert.deepStrictEqual(result, {
+			accepted: true,
+			message: 'Queued runAgent for backend handling.',
+			command: 'runAgent',
+		});
 	});
 });
