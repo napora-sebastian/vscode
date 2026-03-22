@@ -1,0 +1,6 @@
+# Additional dependencies for Phase 5: Database & Endpoint Middleware
+# Append to python/requirements.txt or install separately
+
+psycopg2-binary>=2.9.9
+neo4j>=5.14.0
+qdrant-client>=1.7.0

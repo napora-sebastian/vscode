@@ -1,0 +1,11 @@
+# Omega AI-First IDE — Python Middleware
+# Phase 2: The "Brain" (Python-Node Middleware)
+
+fastapi>=0.104.0
+uvicorn>=0.24.0
+websockets>=12.0
+jsonrpcserver>=5.0.0
+jsonrpcclient>=4.0.0
+langgraph>=0.0.20
+watchdog>=3.0.0
+pydantic>=2.5.0
