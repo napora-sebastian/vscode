@@ -452,3 +452,177 @@
 	border-radius: 4px;
 	border-left: 3px solid var(--vscode-editorInfo-foreground);
 }
+
+/* Phase 4 – Trace filter bar */
+.ai-super-panel-trace-filter-bar {
+	display: flex;
+	gap: 4px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+	flex-wrap: wrap;
+}
+
+.ai-super-panel-trace-filter-button {
+	padding: 3px 8px;
+	background: var(--vscode-badge-background);
+	color: var(--vscode-badge-foreground);
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.ai-super-panel-trace-filter-button:hover {
+	opacity: 0.8;
+}
+
+/* Phase 4 – Trace timeline */
+.ai-super-panel-trace-timeline-header {
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-trace-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 0 12px 8px;
+}
+
+.ai-super-panel-trace-entry {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	background: var(--vscode-editor-background);
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.ai-super-panel-trace-entry:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.ai-super-panel-trace-icon {
+	flex-shrink: 0;
+}
+
+.ai-super-panel-trace-label {
+	font-weight: 600;
+	color: var(--vscode-foreground);
+	min-width: 80px;
+}
+
+.ai-super-panel-trace-detail {
+	flex: 1;
+	color: var(--vscode-descriptionForeground);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ai-super-panel-trace-time {
+	font-size: 10px;
+	color: var(--vscode-descriptionForeground);
+	flex-shrink: 0;
+}
+
+/* Phase 4 – Endpoint tree */
+.ai-super-panel-endpoint-tree {
+	flex: 1;
+	overflow-y: auto;
+}
+
+.ai-super-panel-endpoint-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 0 12px 8px;
+}
+
+.ai-super-panel-endpoint-entry {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 8px;
+	background: var(--vscode-editor-background);
+	border-radius: 4px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.ai-super-panel-endpoint-entry:hover {
+	background: var(--vscode-list-hoverBackground);
+}
+
+.ai-super-panel-endpoint-method {
+	font-weight: 700;
+	font-size: 10px;
+	padding: 1px 4px;
+	border-radius: 3px;
+	min-width: 32px;
+	text-align: center;
+}
+
+.ai-super-panel-endpoint-method.method-get {
+	background: #61affe33;
+	color: #61affe;
+}
+
+.ai-super-panel-endpoint-method.method-post {
+	background: #49cc9033;
+	color: #49cc90;
+}
+
+.ai-super-panel-endpoint-path {
+	font-family: var(--vscode-editor-font-family);
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-endpoint-label {
+	color: var(--vscode-descriptionForeground);
+	margin-left: auto;
+	font-size: 11px;
+}
+
+/* Phase 4 – Verify checklist */
+.ai-super-panel-verify-checklist {
+	padding: 8px 12px;
+	border-top: 1px solid var(--vscode-panel-border);
+}
+
+.ai-super-panel-verify-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 0;
+	font-size: 12px;
+}
+
+.ai-super-panel-verify-checkbox {
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.ai-super-panel-verify-label {
+	color: var(--vscode-foreground);
+}
+
+/* Phase 4 – Run in terminal button */
+.ai-super-panel-run-in-terminal {
+	margin: 8px 12px;
+	padding: 6px 12px;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.ai-super-panel-run-in-terminal:hover {
+	background: var(--vscode-button-hoverBackground);
+}

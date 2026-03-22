@@ -86,6 +86,48 @@ export class APICallerViewPane extends ViewPane {
 		const securityCallButton = append(endpointForm, $('button.ai-super-panel-security-call-button'));
 		securityCallButton.textContent = '🔒 Call with Security Scan';
 		securityCallButton.title = 'Use the security-reviewer sub-agent before executing the call';
+
+		// Saved endpoints tree (Phase 4)
+		const endpointTree = append(content, $('.ai-super-panel-endpoint-tree'));
+		const treeHeader = append(endpointTree, $('.ai-super-panel-section-subheader'));
+		treeHeader.textContent = 'Saved Endpoints';
+
+		const sampleEndpoints = [
+			{ method: 'POST', path: '/v1/agents/run', label: 'Run Agent' },
+			{ method: 'GET', path: '/v1/agents/status', label: 'Agent Status' },
+			{ method: 'POST', path: '/v1/completions', label: 'Completions' },
+			{ method: 'GET', path: '/v1/traces', label: 'Get Traces' },
+		];
+		const endpointList = append(endpointTree, $('.ai-super-panel-endpoint-list'));
+		for (const ep of sampleEndpoints) {
+			const entry = append(endpointList, $('.ai-super-panel-endpoint-entry'));
+			const method = append(entry, $('span.ai-super-panel-endpoint-method'));
+			method.textContent = ep.method;
+			method.classList.add(`method-${ep.method.toLowerCase()}`);
+			const path = append(entry, $('span.ai-super-panel-endpoint-path'));
+			path.textContent = ep.path;
+			const label = append(entry, $('span.ai-super-panel-endpoint-label'));
+			label.textContent = ep.label;
+		}
+
+		// Verify checklist (Phase 4)
+		const verifySection = append(content, $('.ai-super-panel-verify-checklist'));
+		const verifyHeader = append(verifySection, $('.ai-super-panel-section-subheader'));
+		verifyHeader.textContent = 'Verify Checklist';
+
+		const checkItems = ['Schema valid', 'Security scan passed', 'DB impact assessed', 'Status code OK'];
+		for (const item of checkItems) {
+			const checkItem = append(verifySection, $('.ai-super-panel-verify-item'));
+			const checkbox = append(checkItem, $('span.ai-super-panel-verify-checkbox'));
+			checkbox.textContent = '☐';
+			const checkLabel = append(checkItem, $('span.ai-super-panel-verify-label'));
+			checkLabel.textContent = item;
+		}
+
+		// Run in terminal button (Phase 4)
+		const runInTerminal = append(content, $('button.ai-super-panel-run-in-terminal'));
+		runInTerminal.textContent = '▶ Run in Terminal';
+		runInTerminal.title = 'Execute the call in the bottom terminal and instantly show the trace';
 	}
 
 	protected override layoutBody(height: number, width: number): void {
