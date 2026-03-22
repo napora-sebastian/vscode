@@ -36,12 +36,30 @@
 	flex: 1;
 	padding: 12px;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 8px;
 	color: var(--vscode-descriptionForeground);
 	border: 1px dashed var(--vscode-panel-border);
 	margin: 8px 12px;
 	border-radius: 4px;
+	min-height: 100px;
+}
+
+.ai-super-panel-graph-placeholder {
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.ai-super-panel-graph-load-button {
+	padding: 6px 12px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
 }
 
 .ai-super-panel-controls {
@@ -50,7 +68,8 @@
 	gap: 8px;
 }
 
-.ai-super-panel-run-button {
+.ai-super-panel-run-button,
+.ai-super-panel-stop-button {
 	padding: 6px 16px;
 	background: var(--vscode-button-background);
 	color: var(--vscode-button-foreground);
@@ -60,8 +79,67 @@
 	font-size: 12px;
 }
 
+.ai-super-panel-stop-button {
+	background: var(--vscode-inputValidation-errorBackground);
+	color: var(--vscode-inputValidation-errorForeground);
+}
+
 .ai-super-panel-run-button:hover {
 	background: var(--vscode-button-hoverBackground);
+}
+
+/* Post-run actions (Phase 1 - open-swe) */
+.ai-super-panel-post-run-actions {
+	padding: 8px 12px;
+	border-top: 1px solid var(--vscode-panel-border);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.ai-super-panel-auto-pr-button,
+.ai-super-panel-spawn-agent-button {
+	padding: 4px 10px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 11px;
+}
+
+.ai-super-panel-auto-pr-button:hover,
+.ai-super-panel-spawn-agent-button:hover {
+	opacity: 0.85;
+}
+
+/* Embedded Terminal Area (Phase 1) */
+.ai-super-panel-terminal-area {
+	min-height: 80px;
+	border-top: 2px solid var(--vscode-panel-border);
+	background: var(--vscode-terminal-background);
+	display: flex;
+	flex-direction: column;
+}
+
+.ai-super-panel-terminal-header {
+	padding: 4px 12px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--vscode-terminal-foreground);
+	border-bottom: 1px solid var(--vscode-panel-border);
+	background: var(--vscode-terminal-background);
+}
+
+.ai-super-panel-terminal-output {
+	flex: 1;
+	padding: 8px 12px;
+	font-family: var(--vscode-editor-font-family);
+	font-size: 12px;
+	color: var(--vscode-terminal-foreground);
+	white-space: pre-wrap;
+	overflow-y: auto;
 }
 
 /* Sub-agent Buttons */
@@ -294,18 +372,4 @@
 
 .ai-super-panel-improve-skill:hover {
 	opacity: 0.9;
-}
-
-/* Terminal Area (embedded terminal placeholder) */
-.ai-super-panel-terminal-area {
-	height: 30%;
-	min-height: 100px;
-	border-top: 2px solid var(--vscode-panel-border);
-	background: var(--vscode-terminal-background);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--vscode-terminal-foreground);
-	font-family: var(--vscode-editor-font-family);
-	font-size: 12px;
 }
