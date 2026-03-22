@@ -413,3 +413,42 @@
 .ai-super-panel-security-call-button:hover {
 	opacity: 0.85;
 }
+
+/* Phase 3 – hermes-agent: Memory results */
+.ai-super-panel-memory-results {
+	padding: 8px 12px;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+	border: 1px dashed var(--vscode-panel-border);
+	margin: 4px 12px;
+	border-radius: 4px;
+	min-height: 40px;
+}
+
+/* Phase 3 – hermes-agent: Session memory */
+.ai-super-panel-session-memory {
+	border-top: 1px solid var(--vscode-panel-border);
+	margin-top: 8px;
+}
+
+.ai-super-panel-session-memory-content {
+	padding: 6px 12px;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* Phase 3 – hermes-agent: Self-improvement loop */
+.ai-super-panel-self-improve {
+	border-top: 1px solid var(--vscode-panel-border);
+	margin-top: 8px;
+}
+
+.ai-super-panel-self-improve-status {
+	padding: 6px 12px;
+	font-size: 11px;
+	color: var(--vscode-descriptionForeground);
+	background: var(--vscode-editor-background);
+	margin: 4px 12px;
+	border-radius: 4px;
+	border-left: 3px solid var(--vscode-editorInfo-foreground);
+}

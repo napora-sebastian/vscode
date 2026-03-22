@@ -104,15 +104,34 @@ export class SkillsViewPane extends ViewPane {
 		// Memory section
 		const memorySection = append(content, $('.ai-super-panel-memory-section'));
 		const memoryHeader = append(memorySection, $('.ai-super-panel-section-subheader'));
-		memoryHeader.textContent = 'Memory Search (USER.md + AGENTS.md)';
+		memoryHeader.textContent = 'Memory Search (USER.md + AGENTS.md + Trajectories)';
 
 		const memorySearch = append(memorySection, $('input.ai-super-panel-memory-search'));
 		memorySearch.setAttribute('type', 'text');
 		memorySearch.setAttribute('placeholder', 'Search memory & trajectories...');
 
+		// Memory results area (Phase 3 - hermes)
+		const memoryResults = append(memorySection, $('.ai-super-panel-memory-results'));
+		memoryResults.textContent = 'Memory search results will appear here';
+
+		// Session memory panel (Phase 3 - hermes)
+		const sessionMemory = append(content, $('.ai-super-panel-session-memory'));
+		const sessionHeader = append(sessionMemory, $('.ai-super-panel-section-subheader'));
+		sessionHeader.textContent = 'Session Memory (Hermes User Model)';
+		const sessionContent = append(sessionMemory, $('.ai-super-panel-session-memory-content'));
+		sessionContent.textContent = 'Chat always includes full hermes user model + session memory.';
+
+		// Self-improvement loop status (Phase 3 - hermes)
+		const selfImproveSection = append(content, $('.ai-super-panel-self-improve'));
+		const selfImproveHeader = append(selfImproveSection, $('.ai-super-panel-section-subheader'));
+		selfImproveHeader.textContent = 'Self-Improvement Loop';
+
+		const selfImproveStatus = append(selfImproveSection, $('.ai-super-panel-self-improve-status'));
+		selfImproveStatus.textContent = '🔄 Loop idle – runs silently after every terminal command and updates the panel in real time.';
+
 		const improveButton = append(content, $('button.ai-super-panel-improve-skill'));
 		improveButton.textContent = '🔄 Improve Skill';
-		improveButton.title = 'Extract patterns from the last trace and add as a new skill';
+		improveButton.title = 'Extract patterns from the last LangSmith trace and instantly add the new skill to the Skills tab';
 	}
 
 	protected override layoutBody(height: number, width: number): void {
