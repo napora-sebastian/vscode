@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { addDisposableListener, getActiveElement } from '../../../../base/browser/dom.js';
+import { status } from '../../../../base/browser/ui/aria/aria.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -129,14 +130,20 @@ export class AISuperPanelView extends ViewPane {
 		terminalLog.textContent = '';
 		bottomPane.appendChild(terminalLog);
 
-		const setActiveTab = (tab: AISuperPanelTab) => {
+		const setActiveTab = (tab: AISuperPanelTab, focusSelectedTab = false) => {
 			activeTab = tab;
 			for (const [name, button] of tabButtons) {
 				const selected = name === tab;
 				button.setAttribute('aria-selected', selected ? 'true' : 'false');
 				button.tabIndex = selected ? 0 : -1;
+				if (selected && focusSelectedTab) {
+					button.focus();
+				}
 			}
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
+			if (focusSelectedTab) {
+				status(localize('aiSuperPanelTabChangedAria', "Switched to {0} tab.", tab));
+			}
 		};
 
 		const setBuilderGraph = () => {
@@ -159,27 +166,25 @@ export class AISuperPanelView extends ViewPane {
 			button.style.background = 'var(--vscode-button-background)';
 			button.style.color = 'var(--vscode-button-foreground)';
 			this._register(addDisposableListener(button, 'click', () => {
-				let messagePayload = apiInput.value.trim();
-				if (!messagePayload && command === 'runAgent') {
-					messagePayload = 'phase1-task';
-				}
+				const endpointOrTask = apiInput.value.trim();
 				const result = aiSuperPanelMessageBridge.sendMessage({
 					command,
 					tab: activeTab,
 					source: 'aiSuperPanel',
-					payload: { endpointOrTask: messagePayload },
 				});
 
 				if (command === 'runAgent') {
-					appendTerminalLines(aiSuperPanelMessageBridge.runBuilderTask(messagePayload));
+					appendTerminalLines(aiSuperPanelMessageBridge.runBuilderTask(endpointOrTask));
+					commandStatus.textContent = result.message;
+					return;
 				}
 				if (command === 'callApi') {
-					const verification = aiSuperPanelMessageBridge.callAndVerify(messagePayload);
+					const verification = aiSuperPanelMessageBridge.callAndVerify(endpointOrTask);
 					appendTerminalLines([
-						`api:call:${messagePayload || 'default-endpoint'}`,
+						`api:call:${endpointOrTask}`,
 						...verification.checks,
 					]);
-					setActiveTab('Traces');
+					setActiveTab('Traces', true);
 					commandStatus.textContent = localize('aiSuperPanelTraceOpened', "Call verified. Opened trace: {0}", verification.traceId);
 					return;
 				}
@@ -198,7 +203,7 @@ export class AISuperPanelView extends ViewPane {
 			tabButton.style.borderRadius = '4px';
 			tabButton.style.background = 'var(--vscode-editor-background)';
 			tabButton.style.color = 'var(--vscode-foreground)';
-			this._register(addDisposableListener(tabButton, 'click', () => setActiveTab(tabName)));
+			this._register(addDisposableListener(tabButton, 'click', () => setActiveTab(tabName, true)));
 			tabList.appendChild(tabButton);
 			tabButtons.set(tabName, tabButton);
 		}

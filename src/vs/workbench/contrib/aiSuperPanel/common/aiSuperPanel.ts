@@ -23,13 +23,16 @@ export interface AISuperPanelCommandMessage {
 	readonly command: AISuperPanelCommand;
 	readonly tab: AISuperPanelTab;
 	readonly source: 'aiSuperPanel';
-	readonly payload?: {
-		readonly endpointOrTask?: string;
-	};
+	readonly endpointOrTask?: string;
 }
 
 export interface AISuperPanelCommandResult {
 	readonly accepted: boolean;
 	readonly message: string;
 	readonly command: AISuperPanelCommand;
+}
+
+export interface AISuperPanelApiVerificationResult {
+	readonly traceId: string;
+	readonly checks: readonly string[];
 }

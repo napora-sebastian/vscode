@@ -5,7 +5,10 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelCommandMessage, AISuperPanelCommandResult } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommandMessage, AISuperPanelCommandResult } from '../common/aiSuperPanel.js';
+
+const DEFAULT_TASK = 'defaultTask';
+const DEFAULT_ENDPOINT = 'defaultEndpoint';
 
 class AISuperPanelMessageBridge extends Disposable {
 
@@ -25,6 +28,11 @@ class AISuperPanelMessageBridge extends Disposable {
 		};
 	}
 
+	/**
+	 * Phase 1 scaffold for Builder tab graph loading.
+	 * This currently returns deterministic placeholder stages that emulate parsing langgraph.json.
+	 * A later phase should replace this with real graph file loading and model mapping.
+	 */
 	loadBuilderGraph(): string[] {
 		// Phase 1 scaffold: local graph steps as lightweight stand-in for langgraph.json integration
 		return [
@@ -36,7 +44,7 @@ class AISuperPanelMessageBridge extends Disposable {
 	}
 
 	runBuilderTask(task: string): string[] {
-		const normalizedTask = task.trim() || 'default-task';
+		const normalizedTask = task.trim() || DEFAULT_TASK;
 		return [
 			`openswe:start:${normalizedTask}`,
 			'openswe:plan',
@@ -46,8 +54,8 @@ class AISuperPanelMessageBridge extends Disposable {
 		];
 	}
 
-	callAndVerify(endpointOrTask: string): { readonly traceId: string; readonly checks: readonly string[] } {
-		const normalized = endpointOrTask.trim() || 'default-endpoint';
+	callAndVerify(endpointOrTask: string): AISuperPanelApiVerificationResult {
+		const normalized = endpointOrTask.trim() || DEFAULT_ENDPOINT;
 		return {
 			traceId: `trace:${normalized.replace(/\s+/g, '-').toLowerCase()}`,
 			checks: [

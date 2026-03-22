@@ -89,12 +89,40 @@ suite('AI Super Panel Contribution', () => {
 			'openswe:verify',
 			'openswe:done',
 		]);
+
+		const defaultRunLog = aiSuperPanelMessageBridge.runBuilderTask('   ');
+		assert.deepStrictEqual(defaultRunLog, [
+			'openswe:start:defaultTask',
+			'openswe:plan',
+			'openswe:execute',
+			'openswe:verify',
+			'openswe:done',
+		]);
+
+		const emptyDefaultRunLog = aiSuperPanelMessageBridge.runBuilderTask('');
+		assert.deepStrictEqual(emptyDefaultRunLog, [
+			'openswe:start:defaultTask',
+			'openswe:plan',
+			'openswe:execute',
+			'openswe:verify',
+			'openswe:done',
+		]);
 	});
 
 	test('message bridge verifies API calls and returns trace id', () => {
 		const result = aiSuperPanelMessageBridge.callAndVerify('POST /v1/agents/run');
 		assert.deepStrictEqual(result, {
 			traceId: 'trace:post-/v1/agents/run',
+			checks: [
+				'schema:pass',
+				'status:pass',
+				'trace:opened',
+			],
+		});
+
+		const defaultResult = aiSuperPanelMessageBridge.callAndVerify('   ');
+		assert.deepStrictEqual(defaultResult, {
+			traceId: 'trace:defaultendpoint',
 			checks: [
 				'schema:pass',
 				'status:pass',
