@@ -46,6 +46,28 @@ export const AI_SUPER_PANEL_PHASE2_SUB_AGENTS = [
 	'Cost Optimizer',
 ] as const;
 
+/**
+ * Phase 2 hook identifiers used by the AI Super Panel scaffold.
+ * - session-start: runs when an interaction starts from the panel UI.
+ * - pre-tool-use: runs before a command/tool call is dispatched.
+ * - security-scan: runs as a lightweight security guardrail step.
+ */
+export const AI_SUPER_PANEL_PHASE2_HOOKS = [
+	'session-start',
+	'pre-tool-use',
+	'security-scan',
+] as const;
+
+export const AI_SUPER_PANEL_PHASE2_HOOK_ACTIONS = [
+	'runAgent',
+	'callApi',
+	'improveSkill',
+	'createAutoPr',
+	'spawnSubAgents',
+	'subAgent',
+	'terminalCommand',
+] as const;
+
 const AI_SUPER_PANEL_PHASE2_CORE_SKILLS = [
 	'Security Scan',
 	'Database Review',
@@ -79,6 +101,8 @@ export const AI_SUPER_PANEL_PHASE2_SKILLS: readonly string[] = [
 
 export type AISuperPanelTab = typeof AI_SUPER_PANEL_PHASE0_TABS[number];
 export type AISuperPanelSubAgent = typeof AI_SUPER_PANEL_PHASE2_SUB_AGENTS[number];
+export type AISuperPanelHookName = typeof AI_SUPER_PANEL_PHASE2_HOOKS[number];
+export type AISuperPanelHookAction = typeof AI_SUPER_PANEL_PHASE2_HOOK_ACTIONS[number];
 
 export function shouldShowPhase2SubAgentBar(tab: AISuperPanelTab): boolean {
 	return tab === 'Builder' || tab === 'Chat';
@@ -120,4 +144,10 @@ export interface AISuperPanelApiVerificationResult {
 export interface AISuperPanelTerminalCommandResult {
 	readonly accepted: boolean;
 	readonly output: readonly string[];
+}
+
+export interface AISuperPanelHookResult {
+	readonly hook: AISuperPanelHookName;
+	readonly status: 'ok' | 'error' | 'pending';
+	readonly action: AISuperPanelHookAction;
 }

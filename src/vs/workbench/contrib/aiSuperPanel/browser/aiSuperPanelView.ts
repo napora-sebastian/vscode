@@ -22,10 +22,15 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelTab, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 const SKILLS_SEARCH_DEBOUNCE_MS = 200;
+const phase2HooksDisplayLabel = AI_SUPER_PANEL_PHASE2_HOOKS.join(', ');
+
+const formatHookLogLine = (hook: AISuperPanelHookResult): string => {
+	return `hook|${hook.hook}|${hook.status}|${hook.action}`;
+};
 
 export class AISuperPanelView extends ViewPane {
 
@@ -70,6 +75,14 @@ export class AISuperPanelView extends ViewPane {
 		subAgentBar.style.flexWrap = 'wrap';
 		subAgentBar.style.gap = '6px';
 		subAgentBar.style.padding = '2px 0';
+
+		const hookStatusBanner = document.createElement('div');
+		hookStatusBanner.setAttribute('role', 'status');
+		hookStatusBanner.style.padding = '6px 8px';
+		hookStatusBanner.style.border = '1px solid var(--vscode-panel-border)';
+		hookStatusBanner.style.borderRadius = '4px';
+		hookStatusBanner.style.background = 'var(--vscode-textCodeBlock-background)';
+		hookStatusBanner.textContent = localize('aiSuperPanelHookStatusIdle', "Hooks ready: {0}", phase2HooksDisplayLabel);
 
 		let activeTab: AISuperPanelTab = AI_SUPER_PANEL_PHASE0_TABS[0];
 		const tabButtons = new Map<AISuperPanelTab, HTMLButtonElement>();
@@ -233,6 +246,13 @@ export class AISuperPanelView extends ViewPane {
 			terminalLog.textContent = `${existing}${lines.join('\n')}`;
 		};
 
+		const runHooksForAction = (action: AISuperPanelHookAction) => {
+			const hooks = aiSuperPanelMessageBridge.runPhase2Hooks(action);
+			appendTerminalLines(hooks.map(hook => formatHookLogLine(hook)));
+			hookStatusBanner.textContent = localize('aiSuperPanelHookStatusUpdated', "Hooks ran for {0}: {1}", action, hooks.map(hook => hook.hook).join(', '));
+			status(hookStatusBanner.textContent);
+		};
+
 		const renderSkillsGrid = (query = '') => {
 			const skills = aiSuperPanelMessageBridge.getPhase2Skills(query);
 			skillsCount.textContent = localize('aiSuperPanelSkillsCount', "{0} of {1} skills shown.", skills.length, AI_SUPER_PANEL_PHASE2_SKILLS.length);
@@ -256,6 +276,7 @@ export class AISuperPanelView extends ViewPane {
 
 		const executeTerminalCommand = () => {
 			const terminalResult = aiSuperPanelMessageBridge.runTerminalCommand(terminalInput.value);
+			runHooksForAction('terminalCommand');
 			appendTerminalLines([
 				`terminal:input:${terminalInput.value}`,
 				...terminalResult.output,
@@ -280,6 +301,7 @@ export class AISuperPanelView extends ViewPane {
 					tab: activeTab,
 					source: 'aiSuperPanel',
 				});
+				runHooksForAction(command);
 
 				if (command === 'runAgent') {
 					const endpointOrTask = apiInput.value.trim();
@@ -330,6 +352,7 @@ export class AISuperPanelView extends ViewPane {
 			subAgentButton.style.color = 'var(--vscode-foreground)';
 			subAgentButton.setAttribute('aria-label', localize('aiSuperPanelSubAgentButtonAria', "Run sub-agent {0}", subAgentName));
 			this._register(addDisposableListener(subAgentButton, 'click', () => {
+				runHooksForAction('subAgent');
 				commandStatus.textContent = localize('aiSuperPanelSubAgentQueued', "Queued sub-agent: {0}", subAgentName);
 			}));
 			subAgentBar.appendChild(subAgentButton);
@@ -371,6 +394,7 @@ export class AISuperPanelView extends ViewPane {
 
 		root.appendChild(tabList);
 		root.appendChild(subAgentBar);
+		root.appendChild(hookStatusBanner);
 		root.appendChild(layout);
 		container.appendChild(root);
 		setBuilderGraph();
@@ -394,6 +418,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
+			localize('aiSuperPanel.a11y.help.hooks', "A hook status banner at the top reports automatic hook runs for panel actions: {0}.", phase2HooksDisplayLabel),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
 			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),

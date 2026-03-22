@@ -8,6 +8,7 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import {
 	AI_SUPER_PANEL_PHASE0_TABS,
+	AI_SUPER_PANEL_PHASE2_HOOKS,
 	AI_SUPER_PANEL_PHASE2_SKILLS,
 	AI_SUPER_PANEL_PHASE2_SUB_AGENTS,
 	AI_SUPER_PANEL_VIEW_CONTAINER_ID,
@@ -69,6 +70,14 @@ suite('AI Super Panel Contribution', () => {
 			'API Contract Verification',
 		]);
 		assert.ok(AI_SUPER_PANEL_PHASE2_SKILLS.every(skill => skill.length > 0));
+	});
+
+	test('defines phase 2 hook names', () => {
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE2_HOOKS, [
+			'session-start',
+			'pre-tool-use',
+			'security-scan',
+		]);
 	});
 
 	test('shows phase 2 sub-agent bar only for Builder and Chat tabs', () => {
@@ -268,5 +277,23 @@ suite('AI Super Panel Contribution', () => {
 		assert.strictEqual(allSkills.length, 116);
 		assert.deepStrictEqual(allSkills, AI_SUPER_PANEL_PHASE2_SKILLS);
 		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase2Skills('security'), ['Security Scan']);
+	});
+
+	test('message bridge runs phase 2 hooks for actions', () => {
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runPhase2Hooks('runAgent'), [
+			{ hook: 'session-start', status: 'ok', action: 'runAgent' },
+			{ hook: 'pre-tool-use', status: 'ok', action: 'runAgent' },
+			{ hook: 'security-scan', status: 'ok', action: 'runAgent' },
+		]);
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runPhase2Hooks('subAgent'), [
+			{ hook: 'session-start', status: 'ok', action: 'subAgent' },
+			{ hook: 'pre-tool-use', status: 'ok', action: 'subAgent' },
+			{ hook: 'security-scan', status: 'ok', action: 'subAgent' },
+		]);
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runPhase2Hooks('terminalCommand'), [
+			{ hook: 'session-start', status: 'ok', action: 'terminalCommand' },
+			{ hook: 'pre-tool-use', status: 'ok', action: 'terminalCommand' },
+			{ hook: 'security-scan', status: 'ok', action: 'terminalCommand' },
+		]);
 	});
 });

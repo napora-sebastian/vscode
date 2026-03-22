@@ -5,7 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, filterPhase2Skills } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, filterPhase2Skills } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
@@ -67,6 +67,19 @@ class AISuperPanelMessageBridge extends Disposable {
 
 	getPhase2Skills(query = ''): readonly string[] {
 		return filterPhase2Skills(query, AI_SUPER_PANEL_PHASE2_SKILLS);
+	}
+
+	/**
+	 * Phase 2 scaffold for hook execution.
+	 * This returns deterministic synchronous "ok" hook results for UI wiring and tests.
+	 * A production implementation should execute hooks asynchronously and surface failures.
+	 */
+	runPhase2Hooks(action: AISuperPanelHookAction): readonly AISuperPanelHookResult[] {
+		return AI_SUPER_PANEL_PHASE2_HOOKS.map(hook => ({
+			hook,
+			status: 'ok',
+			action,
+		}));
 	}
 
 	callAndVerify(endpointOrTask: string): AISuperPanelApiVerificationResult {
