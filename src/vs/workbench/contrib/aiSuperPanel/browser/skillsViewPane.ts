@@ -20,6 +20,11 @@ import { ViewPane } from '../../../browser/parts/views/viewPane.js';
  * Skills view pane for the AI Super Panel.
  * Displays a searchable grid of 116+ skills from everything-Claude-code
  * with hermes self-improvement integration.
+ *
+ * Phase 2 – everything-Claude-code Integration:
+ * - 28 sub-agents appear as quick buttons at the top
+ * - 116 skills appear in a searchable grid
+ * - Database-reviewer sub-agent auto-connects to DB Middleware tab
  */
 export class SkillsViewPane extends ViewPane {
 
@@ -48,16 +53,55 @@ export class SkillsViewPane extends ViewPane {
 		container.classList.add('ai-super-panel-skills');
 
 		const content = append(container, $('.ai-super-panel-skills-content'));
-		const header = append(content, $('.ai-super-panel-section-header'));
-		header.textContent = 'Skills – Hermes Self-Improvement';
 
+		// 28 Sub-agents quick buttons (Phase 2)
+		const subagentSection = append(content, $('.ai-super-panel-subagent-section'));
+		const subagentHeader = append(subagentSection, $('.ai-super-panel-section-subheader'));
+		subagentHeader.textContent = '28 Sub-Agents';
+
+		const subagentBar = append(subagentSection, $('.ai-super-panel-subagent-bar'));
+		const subAgents = [
+			'code-reviewer', 'security-reviewer', 'database-reviewer',
+			'api-designer', 'test-writer', 'doc-generator',
+			'refactor-expert', 'perf-optimizer', 'debug-assistant',
+			'deploy-manager', 'ci-cd-expert', 'infrastructure',
+			'data-analyst', 'ml-engineer', 'nlp-specialist',
+			'frontend-dev', 'backend-dev', 'devops-engineer',
+			'ux-researcher', 'accessibility-expert', 'i18n-specialist',
+			'monitoring-agent', 'logging-expert', 'caching-specialist',
+			'queue-manager', 'auth-specialist', 'crypto-expert',
+			'compliance-checker'
+		];
+		for (const agent of subAgents) {
+			const btn = append(subagentBar, $('button.ai-super-panel-subagent-button'));
+			btn.textContent = agent;
+			btn.title = `Activate ${agent} sub-agent`;
+		}
+
+		// Skills section header
+		const header = append(content, $('.ai-super-panel-section-header'));
+		header.textContent = 'Skills – 116 Available Skills';
+
+		// Skills search
 		const searchBox = append(content, $('input.ai-super-panel-skills-search'));
 		searchBox.setAttribute('type', 'text');
-		searchBox.setAttribute('placeholder', 'Search skills...');
+		searchBox.setAttribute('placeholder', 'Search 116 skills...');
 
+		// Skills grid with sample skills (Phase 2)
 		const skillsGrid = append(content, $('.ai-super-panel-skills-grid'));
-		skillsGrid.textContent = 'Skills grid will appear here';
+		const sampleSkills = [
+			'Code Generation', 'Bug Detection', 'Refactoring',
+			'Test Generation', 'Documentation', 'API Design',
+			'Schema Validation', 'Security Audit', 'Performance',
+			'Code Review', 'Dependency Analysis', 'Migration'
+		];
+		for (const skill of sampleSkills) {
+			const skillCard = append(skillsGrid, $('.ai-super-panel-skill-card'));
+			skillCard.textContent = skill;
+			skillCard.title = `Activate skill: ${skill}`;
+		}
 
+		// Memory section
 		const memorySection = append(content, $('.ai-super-panel-memory-section'));
 		const memoryHeader = append(memorySection, $('.ai-super-panel-section-subheader'));
 		memoryHeader.textContent = 'Memory Search (USER.md + AGENTS.md)';

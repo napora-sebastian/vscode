@@ -373,3 +373,43 @@
 .ai-super-panel-improve-skill:hover {
 	opacity: 0.9;
 }
+
+/* Phase 2 – Skill Cards */
+.ai-super-panel-skill-card {
+	padding: 8px 10px;
+	background: var(--vscode-editor-background);
+	border: 1px solid var(--vscode-panel-border);
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 11px;
+	text-align: center;
+	transition: border-color 0.15s;
+	color: var(--vscode-foreground);
+}
+
+.ai-super-panel-skill-card:hover {
+	border-color: var(--vscode-focusBorder);
+	background: var(--vscode-list-hoverBackground);
+}
+
+/* Phase 2 – Sub-agent section */
+.ai-super-panel-subagent-section {
+	border-bottom: 1px solid var(--vscode-panel-border);
+	padding-bottom: 4px;
+}
+
+/* Phase 2 – Security call button */
+.ai-super-panel-security-call-button {
+	padding: 6px 12px;
+	background: var(--vscode-button-secondaryBackground);
+	color: var(--vscode-button-secondaryForeground);
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.ai-super-panel-security-call-button:hover {
+	opacity: 0.85;
+}

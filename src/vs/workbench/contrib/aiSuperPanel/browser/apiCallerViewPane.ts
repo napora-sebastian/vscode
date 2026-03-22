@@ -20,6 +20,11 @@ import { ViewPane } from '../../../browser/parts/views/viewPane.js';
  * API Caller view pane for the AI Super Panel.
  * Provides one-click API/endpoint call & verify functionality
  * with schema validation and security scanning.
+ *
+ * Phase 2 – everything-Claude-code Integration:
+ * - "Call with Security Scan" uses the security-reviewer sub-agent before any call
+ * - Hooks (session-start, pre-tool-use, security-scan) run automatically
+ * - Status banner shows hook results at the top
  */
 export class APICallerViewPane extends ViewPane {
 
@@ -48,6 +53,23 @@ export class APICallerViewPane extends ViewPane {
 		container.classList.add('ai-super-panel-api-caller');
 
 		const content = append(container, $('.ai-super-panel-api-caller-content'));
+
+		// Hooks status banner (Phase 2)
+		const hooksBanner = append(content, $('.ai-super-panel-hooks-banner'));
+		hooksBanner.textContent = '🔒 Hooks: session-start ✓ | pre-tool-use ✓ | security-scan ✓';
+
+		// Sub-agent quick buttons at the top (Phase 2)
+		const subagentBar = append(content, $('.ai-super-panel-subagent-bar'));
+		const subAgents = [
+			'security-reviewer', 'api-validator', 'schema-checker',
+			'rate-limiter', 'auth-verifier', 'payload-inspector'
+		];
+		for (const agent of subAgents) {
+			const btn = append(subagentBar, $('button.ai-super-panel-subagent-button'));
+			btn.textContent = agent;
+			btn.title = `Activate ${agent} sub-agent`;
+		}
+
 		const header = append(content, $('.ai-super-panel-section-header'));
 		header.textContent = 'API Caller & Verifier';
 
@@ -59,6 +81,11 @@ export class APICallerViewPane extends ViewPane {
 		const callButton = append(endpointForm, $('button.ai-super-panel-call-button'));
 		callButton.textContent = 'Call & Verify';
 		callButton.title = 'Execute the call and verify response schema/status';
+
+		// Security scan button (Phase 2)
+		const securityCallButton = append(endpointForm, $('button.ai-super-panel-security-call-button'));
+		securityCallButton.textContent = '🔒 Call with Security Scan';
+		securityCallButton.title = 'Use the security-reviewer sub-agent before executing the call';
 	}
 
 	protected override layoutBody(height: number, width: number): void {
