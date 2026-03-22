@@ -4,38 +4,57 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Permanent Agent Panel View Pane
+ * AI Super Panel View Pane
  *
- * Renders the main agent panel content including:
- * - LangGraph agent workflow visualizer
- * - Real-time LangSmith-style trace display
- * - Agent configuration and hot-reload controls
+ * Renders the unified panel with the Ai-first.md tab layout and the
+ * Ai-second.md agent infrastructure.  The pane is split:
+ *   • Top 70 % — six switchable tabs (Builder, Chat, API Caller, Traces, DB Middleware, Skills)
+ *   • Bottom 30 % — embedded xterm.js terminal streaming live agent output
+ *
+ * Sources:
+ * - Ai-first.md  Phase 0   — tab layout + embedded terminal
+ * - Ai-second.md Phase 1   — LangGraph + LangSmith view state
  */
-export interface IAgentPanelState {
+
+import { AISuperPanelTab } from './agentPanel.contribution.js';
+
+// ── Panel state ─────────────────────────────────────────────────────────────
+export interface IAISuperPanelState {
 	/** Whether the panel is currently visible */
 	readonly isVisible: boolean;
-	/** Currently active tab within the panel */
-	readonly activeTab: AgentPanelTab;
-	/** Connected agent server endpoint */
-	readonly serverEndpoint: string | undefined;
-}
 
-export const enum AgentPanelTab {
-	/** LangGraph workflow visualizer */
-	Visualizer = 'visualizer',
-	/** LangSmith-style trace timeline */
-	Traces = 'traces',
-	/** Agent configuration and hot-reload */
-	AgentConfig = 'agentConfig',
+	/** Currently active tab (Ai-first.md Phase 0 §3) */
+	readonly activeTab: AISuperPanelTab;
+
+	/** Connected agent server endpoint (Ai-second.md) */
+	readonly serverEndpoint: string | undefined;
+
+	/** Whether the embedded terminal is focused (Ai-first.md Phase 5 §2) */
+	readonly terminalFocused: boolean;
+
+	/** Memory search query visible across all tabs (Ai-first.md Phase 3 §1) */
+	readonly memorySearchQuery: string;
 }
 
 /**
- * Default state for the Agent Panel.
+ * Default state for the AI Super Panel.
  */
-export function createDefaultAgentPanelState(): IAgentPanelState {
+export function createDefaultAISuperPanelState(): IAISuperPanelState {
 	return {
 		isVisible: false,
-		activeTab: AgentPanelTab.Visualizer,
+		activeTab: AISuperPanelTab.Builder,
 		serverEndpoint: undefined,
+		terminalFocused: false,
+		memorySearchQuery: '',
 	};
 }
+
+// ── Backward compatibility ──────────────────────────────────────────────────
+/** @deprecated Use IAISuperPanelState */
+export type IAgentPanelState = IAISuperPanelState;
+
+/** @deprecated Use AISuperPanelTab */
+export const AgentPanelTab = AISuperPanelTab;
+
+/** @deprecated Use createDefaultAISuperPanelState */
+export const createDefaultAgentPanelState = createDefaultAISuperPanelState;
