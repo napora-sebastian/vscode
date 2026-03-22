@@ -23,6 +23,9 @@ export interface AISuperPanelCommandMessage {
 	readonly command: AISuperPanelCommand;
 	readonly tab: AISuperPanelTab;
 	readonly source: 'aiSuperPanel';
+	readonly payload?: {
+		readonly endpointOrTask?: string;
+	};
 }
 
 export interface AISuperPanelCommandResult {

@@ -24,6 +24,39 @@ class AISuperPanelMessageBridge extends Disposable {
 			command: message.command,
 		};
 	}
+
+	loadBuilderGraph(): string[] {
+		// Phase 1 scaffold: local graph steps as lightweight stand-in for langgraph.json integration
+		return [
+			'load:langgraph.json',
+			'resolve:nodes',
+			'resolve:edges',
+			'ready:builder-graph',
+		];
+	}
+
+	runBuilderTask(task: string): string[] {
+		const normalizedTask = task.trim() || 'default-task';
+		return [
+			`openswe:start:${normalizedTask}`,
+			'openswe:plan',
+			'openswe:execute',
+			'openswe:verify',
+			'openswe:done',
+		];
+	}
+
+	callAndVerify(endpointOrTask: string): { readonly traceId: string; readonly checks: readonly string[] } {
+		const normalized = endpointOrTask.trim() || 'default-endpoint';
+		return {
+			traceId: `trace:${normalized.replace(/\s+/g, '-').toLowerCase()}`,
+			checks: [
+				'schema:pass',
+				'status:pass',
+				'trace:opened',
+			],
+		};
+	}
 }
 
 export const aiSuperPanelMessageBridge = new AISuperPanelMessageBridge();

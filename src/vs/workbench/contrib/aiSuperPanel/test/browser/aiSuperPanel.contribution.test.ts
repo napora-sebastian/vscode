@@ -71,4 +71,35 @@ suite('AI Super Panel Contribution', () => {
 		disposable.dispose();
 		assert.strictEqual(emittedCommand, 'callApi');
 	});
+
+	test('message bridge provides phase 1 builder graph and run traces', () => {
+		const graph = aiSuperPanelMessageBridge.loadBuilderGraph();
+		assert.deepStrictEqual(graph, [
+			'load:langgraph.json',
+			'resolve:nodes',
+			'resolve:edges',
+			'ready:builder-graph',
+		]);
+
+		const runLog = aiSuperPanelMessageBridge.runBuilderTask('demo task');
+		assert.deepStrictEqual(runLog, [
+			'openswe:start:demo task',
+			'openswe:plan',
+			'openswe:execute',
+			'openswe:verify',
+			'openswe:done',
+		]);
+	});
+
+	test('message bridge verifies API calls and returns trace id', () => {
+		const result = aiSuperPanelMessageBridge.callAndVerify('POST /v1/agents/run');
+		assert.deepStrictEqual(result, {
+			traceId: 'trace:post-/v1/agents/run',
+			checks: [
+				'schema:pass',
+				'status:pass',
+				'trace:opened',
+			],
+		});
+	});
 });

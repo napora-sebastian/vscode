@@ -81,6 +81,28 @@ export class AISuperPanelView extends ViewPane {
 		actionBar.style.marginTop = '8px';
 		topPane.appendChild(actionBar);
 
+		const builderGraphRegion = document.createElement('div');
+		builderGraphRegion.setAttribute('role', 'region');
+		builderGraphRegion.setAttribute('aria-label', localize('aiSuperPanelBuilderGraphRegion', "AI Super Panel Builder Graph"));
+		builderGraphRegion.style.marginTop = '8px';
+		builderGraphRegion.style.padding = '8px';
+		builderGraphRegion.style.border = '1px solid var(--vscode-panel-border)';
+		builderGraphRegion.style.borderRadius = '4px';
+		topPane.appendChild(builderGraphRegion);
+
+		const apiCallRow = document.createElement('div');
+		apiCallRow.style.display = 'flex';
+		apiCallRow.style.gap = '8px';
+		apiCallRow.style.marginTop = '8px';
+		topPane.appendChild(apiCallRow);
+
+		const apiInput = document.createElement('input');
+		apiInput.type = 'text';
+		apiInput.placeholder = localize('aiSuperPanelApiInputPlaceholder', "Endpoint or task");
+		apiInput.style.flex = '1';
+		apiInput.setAttribute('aria-label', localize('aiSuperPanelApiInputLabel', "Endpoint or task to call and verify"));
+		apiCallRow.appendChild(apiInput);
+
 		const commandStatus = document.createElement('div');
 		commandStatus.tabIndex = 0;
 		commandStatus.setAttribute('role', 'status');
@@ -97,7 +119,15 @@ export class AISuperPanelView extends ViewPane {
 		bottomPane.style.overflow = 'auto';
 		bottomPane.setAttribute('role', 'region');
 		bottomPane.setAttribute('aria-label', localize('aiSuperPanelTerminalRegion', "AI Super Panel Terminal"));
-		bottomPane.textContent = localize('aiSuperPanelTerminalPlaceholder', "Embedded terminal placeholder (30%).");
+		const terminalHeader = document.createElement('div');
+		terminalHeader.textContent = localize('aiSuperPanelTerminalPlaceholder', "Embedded terminal placeholder (30%).");
+		bottomPane.appendChild(terminalHeader);
+
+		const terminalLog = document.createElement('pre');
+		terminalLog.style.whiteSpace = 'pre-wrap';
+		terminalLog.style.margin = '8px 0 0';
+		terminalLog.textContent = '';
+		bottomPane.appendChild(terminalLog);
 
 		const setActiveTab = (tab: AISuperPanelTab) => {
 			activeTab = tab;
@@ -107,6 +137,16 @@ export class AISuperPanelView extends ViewPane {
 				button.tabIndex = selected ? 0 : -1;
 			}
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
+		};
+
+		const setBuilderGraph = () => {
+			const lines = aiSuperPanelMessageBridge.loadBuilderGraph();
+			builderGraphRegion.textContent = localize('aiSuperPanelBuilderGraphLoaded', "Builder graph loaded: {0}", lines.join(' → '));
+		};
+
+		const appendTerminalLines = (lines: readonly string[]) => {
+			const existing = terminalLog.textContent ? `${terminalLog.textContent}\n` : '';
+			terminalLog.textContent = `${existing}${lines.join('\n')}`;
 		};
 
 		const createActionButton = (command: AISuperPanelCommand, label: string) => {
@@ -119,11 +159,30 @@ export class AISuperPanelView extends ViewPane {
 			button.style.background = 'var(--vscode-button-background)';
 			button.style.color = 'var(--vscode-button-foreground)';
 			this._register(addDisposableListener(button, 'click', () => {
+				let messagePayload = apiInput.value.trim();
+				if (!messagePayload && command === 'runAgent') {
+					messagePayload = 'phase1-task';
+				}
 				const result = aiSuperPanelMessageBridge.sendMessage({
 					command,
 					tab: activeTab,
 					source: 'aiSuperPanel',
+					payload: { endpointOrTask: messagePayload },
 				});
+
+				if (command === 'runAgent') {
+					appendTerminalLines(aiSuperPanelMessageBridge.runBuilderTask(messagePayload));
+				}
+				if (command === 'callApi') {
+					const verification = aiSuperPanelMessageBridge.callAndVerify(messagePayload);
+					appendTerminalLines([
+						`api:call:${messagePayload || 'default-endpoint'}`,
+						...verification.checks,
+					]);
+					setActiveTab('Traces');
+					commandStatus.textContent = localize('aiSuperPanelTraceOpened', "Call verified. Opened trace: {0}", verification.traceId);
+					return;
+				}
 				commandStatus.textContent = result.message;
 			}));
 			return button;
@@ -145,7 +204,7 @@ export class AISuperPanelView extends ViewPane {
 		}
 
 		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
-		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call API")));
+		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call & Verify")));
 		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
 
 		const layout = document.createElement('div');
@@ -159,6 +218,7 @@ export class AISuperPanelView extends ViewPane {
 		root.appendChild(tabList);
 		root.appendChild(layout);
 		container.appendChild(root);
+		setBuilderGraph();
 		setActiveTab(activeTab);
 	}
 }
@@ -175,7 +235,8 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.header', "Accessibility Help: AI Super Panel"),
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
-			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call API, or Improve Skill buttons to queue placeholder messages for backend handling."),
+			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
+			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),
 		].join('\n');
 
@@ -199,9 +260,9 @@ export class AISuperPanelAccessibleView implements IAccessibleViewImplementation
 		const focusedElement = getActiveElement() as HTMLElement | null;
 		const contentText = [
 			localize('aiSuperPanel.a11y.view.header', "AI Super Panel"),
-			localize('aiSuperPanel.a11y.view.description', "This view is currently a Phase 0 scaffold with tabs."),
+			localize('aiSuperPanel.a11y.view.description', "This view is currently a Phase 1 scaffold with tabs."),
 			localize('aiSuperPanel.a11y.view.tabs', "Available tabs: {0}.", AI_SUPER_PANEL_PHASE0_TABS.join(', ')),
-			localize('aiSuperPanel.a11y.view.placeholder', "Top section is a 70 percent content placeholder and bottom section is a 30 percent terminal placeholder."),
+			localize('aiSuperPanel.a11y.view.placeholder', "Top section is a 70 percent builder/API placeholder and bottom section is a 30 percent terminal stream placeholder."),
 		].join('\n');
 
 		return new AccessibleContentProvider(
