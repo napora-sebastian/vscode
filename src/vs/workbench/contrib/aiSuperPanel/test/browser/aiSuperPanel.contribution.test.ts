@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { Extensions as ViewExtensions, IViewContainersRegistry, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
-import { AI_SUPER_PANEL_VIEW_CONTAINER_ID, AI_SUPER_PANEL_VIEW_ID } from '../../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_VIEW_CONTAINER_ID, AI_SUPER_PANEL_VIEW_ID } from '../../common/aiSuperPanel.js';
 import '../../browser/aiSuperPanel.contribution.js';
 
 suite('AI Super Panel Contribution', () => {
@@ -28,5 +28,16 @@ suite('AI Super Panel Contribution', () => {
 		assert.strictEqual(viewContainer!.id, AI_SUPER_PANEL_VIEW_CONTAINER_ID);
 		assert.ok(view);
 		assert.strictEqual(view!.id, AI_SUPER_PANEL_VIEW_ID);
+	});
+
+	test('defines phase 0 tabs', () => {
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE0_TABS, [
+			'Builder',
+			'Chat',
+			'API Caller',
+			'Traces',
+			'DB Middleware',
+			'Skills',
+		]);
 	});
 });

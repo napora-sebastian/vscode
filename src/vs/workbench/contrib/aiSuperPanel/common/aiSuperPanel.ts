@@ -5,3 +5,14 @@
 
 export const AI_SUPER_PANEL_VIEW_CONTAINER_ID = 'workbench.view.aiSuperPanel';
 export const AI_SUPER_PANEL_VIEW_ID = 'workbench.view.aiSuperPanel.view';
+
+export const AI_SUPER_PANEL_PHASE0_TABS = [
+	'Builder',
+	'Chat',
+	'API Caller',
+	'Traces',
+	'DB Middleware',
+	'Skills',
+] as const;
+
+export type AISuperPanelTab = typeof AI_SUPER_PANEL_PHASE0_TABS[number];
