@@ -115,6 +115,10 @@ export function shouldShowPhase2SkillsGrid(tab: AISuperPanelTab): boolean {
 	return tab === 'Skills';
 }
 
+export function shouldAutoOpenDbMiddlewareForSubAgent(subAgent: AISuperPanelSubAgent): boolean {
+	return subAgent === 'Database Reviewer';
+}
+
 export function filterPhase2Skills(query: string, skills: readonly string[] = AI_SUPER_PANEL_PHASE2_SKILLS): readonly string[] {
 	const normalized = query.trim().toLowerCase();
 	if (!normalized) {

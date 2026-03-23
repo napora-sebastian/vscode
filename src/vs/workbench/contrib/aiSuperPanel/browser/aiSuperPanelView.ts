@@ -22,7 +22,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 const SKILLS_SEARCH_DEBOUNCE_MS = 200;
@@ -367,7 +367,15 @@ export class AISuperPanelView extends ViewPane {
 			subAgentButton.setAttribute('aria-label', localize('aiSuperPanelSubAgentButtonAria', "Run sub-agent {0}", subAgentName));
 			this._register(addDisposableListener(subAgentButton, 'click', () => {
 				runHooksForAction('subAgent');
+				if (shouldAutoOpenDbMiddlewareForSubAgent(subAgentName)) {
+					setActiveTab('DB Middleware', true);
+					const dbConnectMessage = localize('aiSuperPanelDbMiddlewareAutoConnect', "Database Reviewer connected to DB Middleware tab.");
+					commandStatus.textContent = dbConnectMessage;
+					status(dbConnectMessage);
+					return;
+				}
 				commandStatus.textContent = localize('aiSuperPanelSubAgentQueued', "Queued sub-agent: {0}", subAgentName);
+				status(commandStatus.textContent);
 			}));
 			subAgentBar.appendChild(subAgentButton);
 		}
@@ -431,6 +439,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call with Security Scan, or Improve Skill buttons to queue placeholder messages for backend handling. Call with Security Scan runs a Security Reviewer pre-check before API verification and blocks calls when the scan does not pass."),
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
+			localize('aiSuperPanel.a11y.help.databaseReviewerAutoConnect', "Selecting Database Reviewer automatically switches to the DB Middleware tab and reports connection status."),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
 			localize('aiSuperPanel.a11y.help.hooks', "A hook status banner at the top reports automatic hook runs for panel actions: {0}.", phase2HooksDisplayLabel),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),

@@ -16,6 +16,7 @@ import {
 	AI_SUPER_PANEL_VIEW_CONTAINER_ID,
 	AI_SUPER_PANEL_VIEW_ID,
 	filterPhase2Skills,
+	shouldAutoOpenDbMiddlewareForSubAgent,
 	shouldShowPhase2SkillsGrid,
 	shouldShowPhase2SubAgentBar
 } from '../../common/aiSuperPanel.js';
@@ -103,6 +104,40 @@ suite('AI Super Panel Contribution', () => {
 			['Traces', false],
 			['DB Middleware', false],
 			['Skills', true],
+		]);
+	});
+
+	test('auto-opens DB Middleware only for Database Reviewer sub-agent', () => {
+		const shouldAutoOpen = AI_SUPER_PANEL_PHASE2_SUB_AGENTS.map(name => [name, shouldAutoOpenDbMiddlewareForSubAgent(name)]);
+		assert.deepStrictEqual(shouldAutoOpen, [
+			['Security Reviewer', false],
+			['Database Reviewer', true],
+			['API Reviewer', false],
+			['Frontend Reviewer', false],
+			['Backend Reviewer', false],
+			['Test Engineer', false],
+			['Refactor Assistant', false],
+			['Performance Optimizer', false],
+			['Dependency Updater', false],
+			['Docs Writer', false],
+			['Bug Investigator', false],
+			['Release Manager', false],
+			['Schema Designer', false],
+			['Migration Planner', false],
+			['Observability Reviewer', false],
+			['Accessibility Reviewer', false],
+			['UX Reviewer', false],
+			['Prompt Engineer', false],
+			['Tooling Builder', false],
+			['CI Fixer', false],
+			['Incident Responder', false],
+			['Lint Specialist', false],
+			['Type Safety Reviewer', false],
+			['Architecture Critic', false],
+			['State Management Reviewer', false],
+			['Integration Specialist', false],
+			['E2E Tester', false],
+			['Cost Optimizer', false],
 		]);
 	});
 
