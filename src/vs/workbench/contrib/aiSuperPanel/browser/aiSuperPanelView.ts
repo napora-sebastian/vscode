@@ -22,7 +22,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldAutoShowImproveSkillAction, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 const SEARCH_DEBOUNCE_MS = 200;
@@ -297,9 +297,14 @@ export class AISuperPanelView extends ViewPane {
 			terminalLog.textContent = `${existing}${lines.join('\n')}`;
 		};
 
+		let improveSkillButton: HTMLButtonElement | undefined;
+
 		const runHooksForAction = (action: AISuperPanelHookAction) => {
 			const hooks = aiSuperPanelMessageBridge.runPhase2Hooks(action);
 			appendTerminalLines(hooks.map(hook => formatHookLogLine(hook)));
+			if (improveSkillButton && shouldAutoShowImproveSkillAction(action)) {
+				improveSkillButton.style.display = '';
+			}
 			hookStatusBanner.textContent = localize('aiSuperPanelHookStatusUpdated', "Hooks ran for {0}: {1}", action, hooks.map(hook => hook.hook).join(', '));
 			status(hookStatusBanner.textContent);
 		};
@@ -456,7 +461,9 @@ export class AISuperPanelView extends ViewPane {
 
 		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
 		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallWithSecurityScan', "Call with Security Scan")));
-		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
+		improveSkillButton = createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill"));
+		improveSkillButton.style.display = 'none';
+		actionBar.appendChild(improveSkillButton);
 		postRunActionBar.appendChild(createActionButton('createAutoPr', localize('aiSuperPanelCreateAutoPr', "Create Auto-PR")));
 		postRunActionBar.appendChild(createActionButton('spawnSubAgents', localize('aiSuperPanelSpawnSubAgents', "Spawn Sub-agents")));
 		this._register(addDisposableListener(terminalRunButton, 'click', () => executeTerminalCommand()));

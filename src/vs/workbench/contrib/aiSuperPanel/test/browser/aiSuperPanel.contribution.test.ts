@@ -19,6 +19,7 @@ import {
 	AI_SUPER_PANEL_VIEW_ID,
 	filterPhase2Skills,
 	filterPhase3MemoryEntries,
+	shouldAutoShowImproveSkillAction,
 	shouldAutoOpenDbMiddlewareForSubAgent,
 	shouldShowPhase2SkillsGrid,
 	shouldShowPhase2SubAgentBar
@@ -141,6 +142,26 @@ suite('AI Super Panel Contribution', () => {
 			['Integration Specialist', false],
 			['E2E Tester', false],
 			['Cost Optimizer', false],
+		]);
+	});
+
+	test('auto-shows Improve Skill action only after run/api workflows', () => {
+		assert.deepStrictEqual([
+			['runAgent', shouldAutoShowImproveSkillAction('runAgent')],
+			['callApi', shouldAutoShowImproveSkillAction('callApi')],
+			['terminalCommand', shouldAutoShowImproveSkillAction('terminalCommand')],
+			['improveSkill', shouldAutoShowImproveSkillAction('improveSkill')],
+			['createAutoPr', shouldAutoShowImproveSkillAction('createAutoPr')],
+			['spawnSubAgents', shouldAutoShowImproveSkillAction('spawnSubAgents')],
+			['subAgent', shouldAutoShowImproveSkillAction('subAgent')],
+		], [
+			['runAgent', true],
+			['callApi', true],
+			['terminalCommand', true],
+			['improveSkill', false],
+			['createAutoPr', false],
+			['spawnSubAgents', false],
+			['subAgent', false],
 		]);
 	});
 

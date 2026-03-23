@@ -154,6 +154,10 @@ export function shouldAutoOpenDbMiddlewareForSubAgent(subAgent: AISuperPanelSubA
 	return subAgent === 'Database Reviewer';
 }
 
+export function shouldAutoShowImproveSkillAction(action: AISuperPanelHookAction): boolean {
+	return action === 'runAgent' || action === 'callApi' || action === 'terminalCommand';
+}
+
 export function filterPhase2Skills(query: string, skills: readonly string[] = AI_SUPER_PANEL_PHASE2_SKILLS): readonly string[] {
 	const normalized = query.trim().toLowerCase();
 	if (!normalized) {
