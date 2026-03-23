@@ -311,7 +311,8 @@ export class AISuperPanelView extends ViewPane {
 
 		const renderSkillsGrid = (query = '') => {
 			const skills = aiSuperPanelMessageBridge.getPhase2Skills(query);
-			skillsCount.textContent = localize('aiSuperPanelSkillsCount', "{0} of {1} skills shown.", skills.length, AI_SUPER_PANEL_PHASE2_SKILLS.length);
+			const totalSkills = aiSuperPanelMessageBridge.getPhase2Skills('').length;
+			skillsCount.textContent = localize('aiSuperPanelSkillsCount', "{0} of {1} skills shown.", skills.length, totalSkills);
 			const skillItemsFragment = document.createDocumentFragment();
 			for (const skill of skills) {
 				const skillItem = document.createElement('button');
@@ -411,6 +412,20 @@ export class AISuperPanelView extends ViewPane {
 					]);
 					setActiveTab('Traces', true);
 					commandStatus.textContent = localize('aiSuperPanelTraceOpenedWithSecurity', "Call verified after Security Reviewer scan. Opened trace: {0}", verification.traceId);
+					status(commandStatus.textContent);
+					return;
+				}
+				if (command === 'improveSkill') {
+					const improvement = aiSuperPanelMessageBridge.improveSkillFromLatestTrace();
+					if (!improvement) {
+						commandStatus.textContent = localize('aiSuperPanelImproveSkillNoTrace', "No trace available yet. Run an agent or API call first.");
+						status(commandStatus.textContent);
+						return;
+					}
+					renderSkillsGrid(latestSkillsQuery);
+					commandStatus.textContent = improvement.added
+						? localize('aiSuperPanelImproveSkillAdded', "Added trace-derived skill: {0}", improvement.skill)
+						: localize('aiSuperPanelImproveSkillExists', "Trace-derived skill already exists: {0}", improvement.skill);
 					status(commandStatus.textContent);
 					return;
 				}
@@ -545,7 +560,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.header', "Accessibility Help: AI Super Panel"),
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
-			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call with Security Scan, or Improve Skill buttons to queue placeholder messages for backend handling. Call with Security Scan runs a Security Reviewer pre-check before API verification and blocks calls when the scan does not pass."),
+			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call with Security Scan, or Improve Skill buttons to queue placeholder messages for backend handling. Improve Skill extracts a trace-derived skill from the latest run or API call and adds it to the Skills tab. Call with Security Scan runs a Security Reviewer pre-check before API verification and blocks calls when the scan does not pass."),
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
 			localize('aiSuperPanel.a11y.help.databaseReviewerAutoConnect', "Selecting Database Reviewer automatically switches to the DB Middleware tab and reports connection status."),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),

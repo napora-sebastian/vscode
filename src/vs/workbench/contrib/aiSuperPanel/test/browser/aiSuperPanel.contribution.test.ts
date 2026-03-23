@@ -28,6 +28,14 @@ import '../../browser/aiSuperPanel.contribution.js';
 import { aiSuperPanelMessageBridge } from '../../browser/aiSuperPanelMessageBridge.js';
 
 suite('AI Super Panel Contribution', () => {
+	suiteSetup(() => {
+		aiSuperPanelMessageBridge.resetForTesting();
+	});
+
+	setup(() => {
+		aiSuperPanelMessageBridge.resetForTesting();
+	});
+
 	test('registers view container in sidebar', () => {
 		const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry);
 		const container = viewContainersRegistry.get(AI_SUPER_PANEL_VIEW_CONTAINER_ID);
@@ -386,6 +394,25 @@ suite('AI Super Panel Contribution', () => {
 		assert.strictEqual(allSkills.length, 116);
 		assert.deepStrictEqual(allSkills, AI_SUPER_PANEL_PHASE2_SKILLS);
 		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase2Skills('security'), ['Security Scan']);
+	});
+
+	test('improve skill extracts trace-derived skill from latest trace and adds it to skills', () => {
+		assert.strictEqual(aiSuperPanelMessageBridge.improveSkillFromLatestTrace(), undefined);
+
+		const verification = aiSuperPanelMessageBridge.callAndVerify('POST /v1/agents/run');
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.improveSkillFromLatestTrace(), {
+			added: true,
+			traceId: verification.traceId,
+			skill: `Trace Skill: ${verification.traceId}`,
+		});
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.improveSkillFromLatestTrace(), {
+			added: false,
+			traceId: verification.traceId,
+			skill: `Trace Skill: ${verification.traceId}`,
+		});
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase2Skills('trace skill'), [
+			`Trace Skill: ${verification.traceId}`,
+		]);
 	});
 
 	test('message bridge returns filtered phase 3 memory entries', () => {

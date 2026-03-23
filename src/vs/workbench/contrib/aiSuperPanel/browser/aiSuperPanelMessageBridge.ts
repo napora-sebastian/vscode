@@ -19,6 +19,8 @@ class AISuperPanelMessageBridge extends Disposable {
 
 	private readonly _onDidSendMessage = this._register(new Emitter<AISuperPanelCommandMessage>());
 	readonly onDidSendMessage = this._onDidSendMessage.event;
+	private _latestTraceId: string | undefined;
+	private readonly _phase3DerivedSkills = new Set<string>();
 
 	constructor() {
 		super();
@@ -50,6 +52,7 @@ class AISuperPanelMessageBridge extends Disposable {
 
 	runBuilderTask(task: string): string[] {
 		const normalizedTask = task.trim() || DEFAULT_TASK;
+		this._latestTraceId = `trace:run:${normalizedTask.replace(/\s+/g, '-').toLowerCase()}`;
 		return [
 			`openswe:start:${normalizedTask}`,
 			'openswe:plan',
@@ -71,7 +74,8 @@ class AISuperPanelMessageBridge extends Disposable {
 	}
 
 	getPhase2Skills(query = ''): readonly string[] {
-		return filterPhase2Skills(query, AI_SUPER_PANEL_PHASE2_SKILLS);
+		const allSkills = [...AI_SUPER_PANEL_PHASE2_SKILLS, ...this._phase3DerivedSkills];
+		return filterPhase2Skills(query, allSkills);
 	}
 
 	getPhase3MemoryEntries(query = ''): readonly AISuperPanelMemoryEntry[] {
@@ -93,14 +97,37 @@ class AISuperPanelMessageBridge extends Disposable {
 
 	callAndVerify(endpointOrTask: string): AISuperPanelApiVerificationResult {
 		const normalized = endpointOrTask.trim() || DEFAULT_ENDPOINT;
+		this._latestTraceId = `trace:${normalized.replace(/\s+/g, '-').toLowerCase()}`;
 		return {
-			traceId: `trace:${normalized.replace(/\s+/g, '-').toLowerCase()}`,
+			traceId: this._latestTraceId,
 			checks: [
 				'schema:pass',
 				'status:pass',
 				'trace:opened',
 			],
 		};
+	}
+
+	improveSkillFromLatestTrace(): { readonly added: boolean; readonly traceId: string; readonly skill: string } | undefined {
+		if (!this._latestTraceId) {
+			return undefined;
+		}
+
+		const skill = `Trace Skill: ${this._latestTraceId}`;
+		const hasSkill = this._phase3DerivedSkills.has(skill);
+		if (!hasSkill) {
+			this._phase3DerivedSkills.add(skill);
+		}
+		return {
+			added: !hasSkill,
+			traceId: this._latestTraceId,
+			skill,
+		};
+	}
+
+	resetForTesting(): void {
+		this._latestTraceId = undefined;
+		this._phase3DerivedSkills.clear();
 	}
 
 	/**
