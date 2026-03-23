@@ -11,11 +11,14 @@ import {
 	AI_SUPER_PANEL_PHASE2_HOOKS,
 	AI_SUPER_PANEL_PHASE2_SKILLS,
 	AI_SUPER_PANEL_PHASE2_SUB_AGENTS,
+	AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES,
+	AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES,
 	AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL,
 	AI_SUPER_PANEL_SECURITY_REVIEWER_PASS,
 	AI_SUPER_PANEL_VIEW_CONTAINER_ID,
 	AI_SUPER_PANEL_VIEW_ID,
 	filterPhase2Skills,
+	filterPhase3MemoryEntries,
 	shouldAutoOpenDbMiddlewareForSubAgent,
 	shouldShowPhase2SkillsGrid,
 	shouldShowPhase2SubAgentBar
@@ -151,6 +154,35 @@ suite('AI Super Panel Contribution', () => {
 		]);
 		assert.deepStrictEqual(filterPhase2Skills('skill library item 10'), ['Skill Library Item 10']);
 		assert.deepStrictEqual(filterPhase2Skills('not-found-term'), []);
+	});
+
+	test('defines phase 3 memory sources and entries', () => {
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES, [
+			'USER.md',
+			'AGENTS.md',
+			'trajectories',
+		]);
+		assert.strictEqual(AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES.length, 4);
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES.map(entry => entry.source), [
+			'USER.md',
+			'AGENTS.md',
+			'trajectories',
+			'trajectories',
+		]);
+	});
+
+	test('filters phase 3 memory entries by source, title, and snippet', () => {
+		assert.deepStrictEqual(filterPhase3MemoryEntries(''), AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES);
+		assert.deepStrictEqual(filterPhase3MemoryEntries('user.md').map(entry => entry.title), [
+			'Preferred Validation Commands',
+		]);
+		assert.deepStrictEqual(filterPhase3MemoryEntries('agent execution').map(entry => entry.title), [
+			'Agent Execution Safety',
+		]);
+		assert.deepStrictEqual(filterPhase3MemoryEntries('security reviewer').map(entry => entry.title), [
+			'Recent API Caller Outcome',
+		]);
+		assert.deepStrictEqual(filterPhase3MemoryEntries('not-found-memory'), []);
 	});
 
 	test('message bridge accepts placeholder commands', () => {
@@ -333,6 +365,14 @@ suite('AI Super Panel Contribution', () => {
 		assert.strictEqual(allSkills.length, 116);
 		assert.deepStrictEqual(allSkills, AI_SUPER_PANEL_PHASE2_SKILLS);
 		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase2Skills('security'), ['Security Scan']);
+	});
+
+	test('message bridge returns filtered phase 3 memory entries', () => {
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase3MemoryEntries(), AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES);
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase3MemoryEntries('trajectories').map(entry => entry.title), [
+			'Recent API Caller Outcome',
+			'Recent DB Middleware Pivot',
+		]);
 	});
 
 	test('message bridge runs phase 2 hooks for actions', () => {

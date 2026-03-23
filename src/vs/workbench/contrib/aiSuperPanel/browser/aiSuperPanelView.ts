@@ -22,10 +22,10 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
-const SKILLS_SEARCH_DEBOUNCE_MS = 200;
+const SEARCH_DEBOUNCE_MS = 200;
 const phase2HooksDisplayLabel = AI_SUPER_PANEL_PHASE2_HOOKS.join(', ');
 
 const formatHookLogLine = (hook: AISuperPanelHookResult): string => {
@@ -172,6 +172,57 @@ export class AISuperPanelView extends ViewPane {
 		commandStatus.textContent = localize('aiSuperPanelCommandStatusIdle', "No command queued.");
 		topPane.appendChild(commandStatus);
 
+		const memorySection = document.createElement('div');
+		memorySection.setAttribute('role', 'region');
+		memorySection.setAttribute('aria-label', localize('aiSuperPanelMemorySectionAria', "AI Super Panel Memory Search"));
+		memorySection.style.marginTop = '8px';
+		memorySection.style.border = '1px solid var(--vscode-panel-border)';
+		memorySection.style.borderRadius = '4px';
+		memorySection.style.padding = '8px';
+		topPane.appendChild(memorySection);
+
+		const memoryToggle = document.createElement('button');
+		memoryToggle.type = 'button';
+		memoryToggle.textContent = localize('aiSuperPanelMemoryToggleCollapsed', "Show Memory Search");
+		memoryToggle.setAttribute('aria-expanded', 'false');
+		memoryToggle.setAttribute('aria-label', localize('aiSuperPanelMemoryToggleAria', "Toggle memory search section"));
+		memoryToggle.style.padding = '4px 8px';
+		memoryToggle.style.border = '1px solid var(--vscode-panel-border)';
+		memoryToggle.style.borderRadius = '4px';
+		memoryToggle.style.background = 'var(--vscode-editor-background)';
+		memoryToggle.style.color = 'var(--vscode-foreground)';
+		memorySection.appendChild(memoryToggle);
+
+		const memoryBody = document.createElement('div');
+		memoryBody.style.display = 'none';
+		memoryBody.style.marginTop = '8px';
+		memorySection.appendChild(memoryBody);
+
+		const memorySources = document.createElement('div');
+		memorySources.style.marginBottom = '6px';
+		memorySources.textContent = localize('aiSuperPanelMemorySources', "Sources: {0}", AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES.join(', '));
+		memoryBody.appendChild(memorySources);
+
+		const memorySearch = document.createElement('input');
+		memorySearch.type = 'text';
+		memorySearch.placeholder = localize('aiSuperPanelMemorySearchPlaceholder', "Search memory");
+		memorySearch.setAttribute('aria-label', localize('aiSuperPanelMemorySearchAria', "Search AI Super Panel memory"));
+		memorySearch.style.width = '100%';
+		memorySearch.style.boxSizing = 'border-box';
+		memoryBody.appendChild(memorySearch);
+
+		const memoryCount = document.createElement('div');
+		memoryCount.style.marginTop = '6px';
+		memoryCount.setAttribute('role', 'status');
+		memoryBody.appendChild(memoryCount);
+
+		const memoryResults = document.createElement('div');
+		memoryResults.style.display = 'grid';
+		memoryResults.style.gap = '6px';
+		memoryResults.style.marginTop = '8px';
+		memoryBody.appendChild(memoryResults);
+		let latestMemoryQuery = '';
+
 		const bottomPane = document.createElement('div');
 		bottomPane.style.flex = '3';
 		bottomPane.style.minHeight = '0';
@@ -272,7 +323,30 @@ export class AISuperPanelView extends ViewPane {
 			}
 			skillsGrid.replaceChildren(skillItemsFragment);
 		};
-		const skillsSearchScheduler = this._register(new RunOnceScheduler(() => renderSkillsGrid(latestSkillsQuery), SKILLS_SEARCH_DEBOUNCE_MS));
+		const skillsSearchScheduler = this._register(new RunOnceScheduler(() => renderSkillsGrid(latestSkillsQuery), SEARCH_DEBOUNCE_MS));
+		const phase3MemoryEntriesTotal = aiSuperPanelMessageBridge.getPhase3MemoryEntries().length;
+		const renderMemoryEntries = (query = '') => {
+			const entries = aiSuperPanelMessageBridge.getPhase3MemoryEntries(query);
+			memoryCount.textContent = localize('aiSuperPanelMemoryCount', "{0} of {1} memory entries shown.", entries.length, phase3MemoryEntriesTotal);
+			const memoryItemsFragment = document.createDocumentFragment();
+			for (const entry of entries) {
+				const memoryItem = document.createElement('button');
+				memoryItem.type = 'button';
+				memoryItem.style.padding = '4px 8px';
+				memoryItem.style.border = '1px solid var(--vscode-panel-border)';
+				memoryItem.style.borderRadius = '4px';
+				memoryItem.style.background = 'var(--vscode-editor-background)';
+				memoryItem.style.color = 'var(--vscode-foreground)';
+				memoryItem.style.textAlign = 'left';
+				memoryItem.dataset.memorySource = entry.source;
+				memoryItem.dataset.memoryTitle = entry.title;
+				memoryItem.setAttribute('aria-label', localize('aiSuperPanelMemoryItemAria', "Memory from {0}: {1}", entry.source, entry.title));
+				memoryItem.textContent = localize('aiSuperPanelMemoryItemLabel', "{0} — {1}", entry.source, entry.title);
+				memoryItemsFragment.appendChild(memoryItem);
+			}
+			memoryResults.replaceChildren(memoryItemsFragment);
+		};
+		const memorySearchScheduler = this._register(new RunOnceScheduler(() => renderMemoryEntries(latestMemoryQuery), SEARCH_DEBOUNCE_MS));
 
 		const executeTerminalCommand = () => {
 			const terminalResult = aiSuperPanelMessageBridge.runTerminalCommand(terminalInput.value);
@@ -405,6 +479,32 @@ export class AISuperPanelView extends ViewPane {
 			latestSkillsQuery = skillsSearch.value;
 			skillsSearchScheduler.schedule();
 		}));
+		this._register(addDisposableListener(memoryToggle, 'click', () => {
+			const expanded = memoryBody.style.display !== 'none';
+			memoryBody.style.display = expanded ? 'none' : 'block';
+			memoryToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+			memoryToggle.textContent = expanded
+				? localize('aiSuperPanelMemoryToggleCollapsed', "Show Memory Search")
+				: localize('aiSuperPanelMemoryToggleExpanded', "Hide Memory Search");
+			status(expanded
+				? localize('aiSuperPanelMemoryCollapsedStatus', "Memory search collapsed.")
+				: localize('aiSuperPanelMemoryExpandedStatus', "Memory search expanded."));
+		}));
+		this._register(addDisposableListener(memorySearch, 'input', () => {
+			latestMemoryQuery = memorySearch.value;
+			memorySearchScheduler.schedule();
+		}));
+		this._register(addDisposableListener(memoryResults, 'click', event => {
+			const target = event.target as HTMLElement | null;
+			const memoryButton = target?.closest('button');
+			const memoryTitle = memoryButton?.dataset.memoryTitle;
+			const memorySource = memoryButton?.dataset.memorySource;
+			if (memoryTitle && memorySource) {
+				const memorySelected = localize('aiSuperPanelMemorySelected', "Selected memory: {0} from {1}", memoryTitle, memorySource);
+				commandStatus.textContent = memorySelected;
+				status(memorySelected);
+			}
+		}));
 
 		const layout = document.createElement('div');
 		layout.style.display = 'flex';
@@ -421,6 +521,7 @@ export class AISuperPanelView extends ViewPane {
 		container.appendChild(root);
 		setBuilderGraph();
 		renderSkillsGrid();
+		renderMemoryEntries();
 		setActiveTab(activeTab);
 	}
 }
@@ -441,6 +542,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
 			localize('aiSuperPanel.a11y.help.databaseReviewerAutoConnect', "Selecting Database Reviewer automatically switches to the DB Middleware tab and reports connection status."),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
+			localize('aiSuperPanel.a11y.help.memorySearch', "A collapsible memory search section supports USER.md, AGENTS.md, and trajectories sources. Use Show Memory Search to expand, type in Search memory, then Tab to memory results and press Enter to select an item."),
 			localize('aiSuperPanel.a11y.help.hooks', "A hook status banner at the top reports automatic hook runs for panel actions: {0}.", phase2HooksDisplayLabel),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call with Security Scan."),

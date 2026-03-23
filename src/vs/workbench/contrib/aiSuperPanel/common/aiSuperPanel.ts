@@ -102,6 +102,41 @@ export const AI_SUPER_PANEL_PHASE2_SKILLS: readonly string[] = [
 	...AI_SUPER_PANEL_PHASE2_SKILL_FILLER,
 ];
 
+export const AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES = [
+	'USER.md',
+	'AGENTS.md',
+	'trajectories',
+] as const;
+
+export interface AISuperPanelMemoryEntry {
+	readonly source: typeof AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES[number];
+	readonly title: string;
+	readonly snippet: string;
+}
+
+export const AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES: readonly AISuperPanelMemoryEntry[] = [
+	{
+		source: 'USER.md',
+		title: 'Preferred Validation Commands',
+		snippet: 'Run compile-check-ts-native before targeted AI Super Panel tests.',
+	},
+	{
+		source: 'AGENTS.md',
+		title: 'Agent Execution Safety',
+		snippet: 'Keep changes minimal and validate with focused tests before reporting progress.',
+	},
+	{
+		source: 'trajectories',
+		title: 'Recent API Caller Outcome',
+		snippet: 'Security Reviewer scan precedes API verify call and blocks on fail.',
+	},
+	{
+		source: 'trajectories',
+		title: 'Recent DB Middleware Pivot',
+		snippet: 'Database Reviewer click auto-opens DB Middleware tab.',
+	},
+];
+
 export type AISuperPanelTab = typeof AI_SUPER_PANEL_PHASE0_TABS[number];
 export type AISuperPanelSubAgent = typeof AI_SUPER_PANEL_PHASE2_SUB_AGENTS[number];
 export type AISuperPanelHookName = typeof AI_SUPER_PANEL_PHASE2_HOOKS[number];
@@ -126,6 +161,19 @@ export function filterPhase2Skills(query: string, skills: readonly string[] = AI
 	}
 
 	return skills.filter(skill => skill.toLowerCase().includes(normalized));
+}
+
+export function filterPhase3MemoryEntries(query: string, entries: readonly AISuperPanelMemoryEntry[] = AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES): readonly AISuperPanelMemoryEntry[] {
+	const normalized = query.trim().toLowerCase();
+	if (!normalized) {
+		return entries;
+	}
+
+	return entries.filter(entry => {
+		return entry.source.toLowerCase().includes(normalized)
+			|| entry.title.toLowerCase().includes(normalized)
+			|| entry.snippet.toLowerCase().includes(normalized);
+	});
 }
 
 export type AISuperPanelCommand = 'runAgent' | 'callApi' | 'improveSkill' | 'createAutoPr' | 'spawnSubAgents';
