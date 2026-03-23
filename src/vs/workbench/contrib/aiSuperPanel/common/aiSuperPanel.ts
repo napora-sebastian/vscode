@@ -68,6 +68,9 @@ export const AI_SUPER_PANEL_PHASE2_HOOK_ACTIONS = [
 	'terminalCommand',
 ] as const;
 
+export const AI_SUPER_PANEL_SECURITY_REVIEWER_PASS = 'security-reviewer:pass';
+export const AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL = 'security-reviewer:fail';
+
 const AI_SUPER_PANEL_PHASE2_CORE_SKILLS = [
 	'Security Scan',
 	'Database Review',

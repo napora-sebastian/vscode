@@ -11,6 +11,8 @@ import {
 	AI_SUPER_PANEL_PHASE2_HOOKS,
 	AI_SUPER_PANEL_PHASE2_SKILLS,
 	AI_SUPER_PANEL_PHASE2_SUB_AGENTS,
+	AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL,
+	AI_SUPER_PANEL_SECURITY_REVIEWER_PASS,
 	AI_SUPER_PANEL_VIEW_CONTAINER_ID,
 	AI_SUPER_PANEL_VIEW_ID,
 	filterPhase2Skills,
@@ -203,6 +205,25 @@ suite('AI Super Panel Contribution', () => {
 				'trace:opened',
 			],
 		});
+	});
+
+	test('message bridge runs security reviewer scan before api calls', () => {
+		const scanResult = aiSuperPanelMessageBridge.runSecurityReviewerScan('POST /v1/agents/run');
+		assert.deepStrictEqual(scanResult, [
+			'security-reviewer:start:POST /v1/agents/run',
+			'security-reviewer:scan',
+			AI_SUPER_PANEL_SECURITY_REVIEWER_PASS,
+		]);
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runSecurityReviewerScan('   '), [
+			'security-reviewer:start:defaultEndpoint',
+			'security-reviewer:scan',
+			AI_SUPER_PANEL_SECURITY_REVIEWER_PASS,
+		]);
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runSecurityReviewerScan('POST /v1/fail/security'), [
+			'security-reviewer:start:POST /v1/fail/security',
+			'security-reviewer:scan',
+			AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL,
+		]);
 	});
 
 	test('message bridge supports /openswe run terminal command scaffold', () => {

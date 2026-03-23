@@ -5,10 +5,15 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, filterPhase2Skills } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
+/**
+ * Deterministic scaffold trigger for failure-path UI wiring and tests.
+ * Real security scans should report actual validation outcomes instead.
+ */
+const SECURITY_SCAN_FAILURE_PATTERN = /\bfail\b/i;
 
 class AISuperPanelMessageBridge extends Disposable {
 
@@ -92,6 +97,27 @@ class AISuperPanelMessageBridge extends Disposable {
 				'trace:opened',
 			],
 		};
+	}
+
+	/**
+	 * Phase 2 scaffold for security-reviewer pre-call scanning.
+	 * This returns deterministic "pass" results to wire UI flow and tests.
+	 * A production implementation should perform real validation and can fail.
+	 */
+	runSecurityReviewerScan(endpoint: string): readonly string[] {
+		const normalized = endpoint.trim() || DEFAULT_ENDPOINT;
+		if (SECURITY_SCAN_FAILURE_PATTERN.test(normalized)) {
+			return [
+				`security-reviewer:start:${normalized}`,
+				'security-reviewer:scan',
+				AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL,
+			];
+		}
+		return [
+			`security-reviewer:start:${normalized}`,
+			'security-reviewer:scan',
+			AI_SUPER_PANEL_SECURITY_REVIEWER_PASS,
+		];
 	}
 
 	runTerminalCommand(rawCommand: string): AISuperPanelTerminalCommandResult {

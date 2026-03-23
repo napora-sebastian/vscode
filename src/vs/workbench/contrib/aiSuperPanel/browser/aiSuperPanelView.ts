@@ -22,7 +22,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 const SKILLS_SEARCH_DEBOUNCE_MS = 200;
@@ -312,13 +312,27 @@ export class AISuperPanelView extends ViewPane {
 				}
 				if (command === 'callApi') {
 					const endpointOrTask = apiInput.value.trim();
+					const securityScanResult = aiSuperPanelMessageBridge.runSecurityReviewerScan(endpointOrTask);
+					const securityScanPassed = securityScanResult.includes(AI_SUPER_PANEL_SECURITY_REVIEWER_PASS);
+					appendTerminalLines([
+						'api:call-with-security-scan',
+						...securityScanResult,
+					]);
+
+					if (!securityScanPassed) {
+						commandStatus.textContent = localize('aiSuperPanelSecurityScanBlockedCall', "Call blocked: Security Reviewer scan did not pass.");
+						status(commandStatus.textContent);
+						return;
+					}
+
 					const verification = aiSuperPanelMessageBridge.callAndVerify(endpointOrTask);
 					appendTerminalLines([
 						`api:call:${endpointOrTask}`,
 						...verification.checks,
 					]);
 					setActiveTab('Traces', true);
-					commandStatus.textContent = localize('aiSuperPanelTraceOpened', "Call verified. Opened trace: {0}", verification.traceId);
+					commandStatus.textContent = localize('aiSuperPanelTraceOpenedWithSecurity', "Call verified after Security Reviewer scan. Opened trace: {0}", verification.traceId);
+					status(commandStatus.textContent);
 					return;
 				}
 				commandStatus.textContent = result.message;
@@ -359,7 +373,7 @@ export class AISuperPanelView extends ViewPane {
 		}
 
 		actionBar.appendChild(createActionButton('runAgent', localize('aiSuperPanelRunAgent', "Run Agent")));
-		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallApi', "Call & Verify")));
+		actionBar.appendChild(createActionButton('callApi', localize('aiSuperPanelCallWithSecurityScan', "Call with Security Scan")));
 		actionBar.appendChild(createActionButton('improveSkill', localize('aiSuperPanelImproveSkill', "Improve Skill")));
 		postRunActionBar.appendChild(createActionButton('createAutoPr', localize('aiSuperPanelCreateAutoPr', "Create Auto-PR")));
 		postRunActionBar.appendChild(createActionButton('spawnSubAgents', localize('aiSuperPanelSpawnSubAgents', "Spawn Sub-agents")));
@@ -415,12 +429,12 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.header', "Accessibility Help: AI Super Panel"),
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
 			localize('aiSuperPanel.a11y.help.tabNavigation', "Use Tab and Shift+Tab to move focus between tabs, panel content, terminal placeholder, and view actions."),
-			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call & Verify, or Improve Skill buttons to queue placeholder messages for backend handling."),
+			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call with Security Scan, or Improve Skill buttons to queue placeholder messages for backend handling. Call with Security Scan runs a Security Reviewer pre-check before API verification and blocks calls when the scan does not pass."),
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
 			localize('aiSuperPanel.a11y.help.hooks', "A hook status banner at the top reports automatic hook runs for panel actions: {0}.", phase2HooksDisplayLabel),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
-			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call & Verify."),
+			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call with Security Scan."),
 			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),
 		].join('\n');
