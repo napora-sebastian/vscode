@@ -5,7 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelDbConnectionResult, AISuperPanelDbProvider, AISuperPanelHermesUserModel, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelMemoryEntry, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills, filterPhase3MemoryEntries } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelDbConnectionResult, AISuperPanelDbProvider, AISuperPanelDbQuickQueryResult, AISuperPanelDbToolInjectionResult, AISuperPanelHermesUserModel, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelMemoryEntry, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills, filterPhase3MemoryEntries } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
@@ -20,6 +20,7 @@ class AISuperPanelMessageBridge extends Disposable {
 	private readonly _onDidSendMessage = this._register(new Emitter<AISuperPanelCommandMessage>());
 	readonly onDidSendMessage = this._onDidSendMessage.event;
 	private _latestTraceId: string | undefined;
+	private _latestDbQuickQuery: { readonly provider: AISuperPanelDbProvider; readonly query: string } | undefined;
 	private readonly _phase3DerivedSkills = new Set<string>();
 	private readonly _phase3HermesUserModel: AISuperPanelHermesUserModel = {
 		profile: 'AI-first IDE builder',
@@ -163,6 +164,7 @@ class AISuperPanelMessageBridge extends Disposable {
 
 	resetForTesting(): void {
 		this._latestTraceId = undefined;
+		this._latestDbQuickQuery = undefined;
 		this._phase3DerivedSkills.clear();
 	}
 
@@ -227,6 +229,57 @@ class AISuperPanelMessageBridge extends Disposable {
 				`db-middleware:connect:start:${provider}`,
 				`db-middleware:connect:target:${normalizedConnection}`,
 				`db-middleware:connect:ready:${provider}`,
+			],
+		};
+	}
+
+	runDbQuickQuery(provider: AISuperPanelDbProvider, rawQuery: string): AISuperPanelDbQuickQueryResult {
+		const query = rawQuery.trim();
+		if (!query) {
+			return {
+				provider,
+				accepted: false,
+				query,
+				output: [`db-middleware:query:error:${provider}: query required`],
+				rows: [],
+			};
+		}
+
+		this._latestDbQuickQuery = { provider, query };
+		const rows = [
+			`row:1:${provider}:result`,
+			`row:2:query-length:${query.length}`,
+		];
+		return {
+			provider,
+			accepted: true,
+			query,
+			output: [
+				`db-middleware:query:start:${provider}`,
+				`db-middleware:query:text:${query}`,
+				...rows,
+				`db-middleware:query:done:${provider}`,
+			],
+			rows,
+		};
+	}
+
+	addLatestDbQueryAsLangGraphTool(): AISuperPanelDbToolInjectionResult {
+		if (!this._latestDbQuickQuery) {
+			return {
+				accepted: false,
+				output: ['db-middleware:tool:error:no-query'],
+			};
+		}
+
+		const toolName = `dbQuickQuery:${this._latestDbQuickQuery.provider.replace(/\s+/g, '')}`;
+		return {
+			accepted: true,
+			toolName,
+			output: [
+				`langgraph:tool:inject:start:${toolName}`,
+				`langgraph:tool:inject:query:${this._latestDbQuickQuery.query}`,
+				`langgraph:tool:inject:done:${toolName}`,
 			],
 		};
 	}

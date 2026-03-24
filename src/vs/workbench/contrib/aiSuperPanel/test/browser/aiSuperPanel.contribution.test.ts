@@ -366,6 +366,48 @@ suite('AI Super Panel Contribution', () => {
 		});
 	});
 
+	test('message bridge runs db middleware quick query and supports add to current agent', () => {
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.addLatestDbQueryAsLangGraphTool(), {
+			accepted: false,
+			output: ['db-middleware:tool:error:no-query'],
+		});
+
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runDbQuickQuery('Postgres', 'SELECT 1'), {
+			provider: 'Postgres',
+			accepted: true,
+			query: 'SELECT 1',
+			output: [
+				'db-middleware:query:start:Postgres',
+				'db-middleware:query:text:SELECT 1',
+				'row:1:Postgres:result',
+				'row:2:query-length:8',
+				'db-middleware:query:done:Postgres',
+			],
+			rows: [
+				'row:1:Postgres:result',
+				'row:2:query-length:8',
+			],
+		});
+
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.addLatestDbQueryAsLangGraphTool(), {
+			accepted: true,
+			toolName: 'dbQuickQuery:Postgres',
+			output: [
+				'langgraph:tool:inject:start:dbQuickQuery:Postgres',
+				'langgraph:tool:inject:query:SELECT 1',
+				'langgraph:tool:inject:done:dbQuickQuery:Postgres',
+			],
+		});
+
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runDbQuickQuery('Vector DB', '   '), {
+			provider: 'Vector DB',
+			accepted: false,
+			query: '',
+			output: ['db-middleware:query:error:Vector DB: query required'],
+			rows: [],
+		});
+	});
+
 	test('message bridge supports /openswe run terminal command scaffold', () => {
 		const success = aiSuperPanelMessageBridge.runTerminalCommand('/openswe run "ship phase 1"');
 		assert.deepStrictEqual(success, {

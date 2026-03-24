@@ -234,6 +234,56 @@ export class AISuperPanelView extends ViewPane {
 		dbConnectButton.setAttribute('aria-label', localize('aiSuperPanelDbConnectButtonAria', "Connect DB Middleware provider"));
 		dbMiddlewareForm.appendChild(dbConnectButton);
 
+		const dbQuickQueryLabel = document.createElement('label');
+		dbQuickQueryLabel.textContent = localize('aiSuperPanelDbQuickQueryVisualLabel', "Quick Query");
+		dbQuickQueryLabel.style.display = 'block';
+		dbQuickQueryLabel.style.marginTop = '6px';
+		dbMiddlewareForm.appendChild(dbQuickQueryLabel);
+
+		const dbQuickQueryInput = document.createElement('input');
+		dbQuickQueryInput.type = 'text';
+		dbQuickQueryInput.id = 'ai-super-panel-db-quick-query';
+		dbQuickQueryInput.placeholder = localize('aiSuperPanelDbQuickQueryPlaceholder', "SELECT * FROM table LIMIT 10");
+		dbQuickQueryInput.setAttribute('aria-label', localize('aiSuperPanelDbQuickQueryAria', "DB Middleware Quick Query"));
+		dbQuickQueryInput.style.padding = '4px 8px';
+		dbQuickQueryInput.style.border = '1px solid var(--vscode-panel-border)';
+		dbQuickQueryInput.style.borderRadius = '4px';
+		dbQuickQueryLabel.htmlFor = dbQuickQueryInput.id;
+		dbMiddlewareForm.appendChild(dbQuickQueryInput);
+
+		const dbQuickQueryRow = document.createElement('div');
+		dbQuickQueryRow.style.display = 'flex';
+		dbQuickQueryRow.style.gap = '8px';
+		dbMiddlewareForm.appendChild(dbQuickQueryRow);
+
+		const dbQuickQueryRunButton = document.createElement('button');
+		dbQuickQueryRunButton.type = 'button';
+		dbQuickQueryRunButton.textContent = localize('aiSuperPanelDbQuickQueryRunButton', "Run Quick Query");
+		dbQuickQueryRunButton.style.padding = '4px 8px';
+		dbQuickQueryRunButton.style.border = '1px solid var(--vscode-panel-border)';
+		dbQuickQueryRunButton.style.borderRadius = '4px';
+		dbQuickQueryRunButton.style.background = 'var(--vscode-button-background)';
+		dbQuickQueryRunButton.style.color = 'var(--vscode-button-foreground)';
+		dbQuickQueryRunButton.setAttribute('aria-label', localize('aiSuperPanelDbQuickQueryRunButtonAria', "Run DB Middleware quick query"));
+		dbQuickQueryRow.appendChild(dbQuickQueryRunButton);
+
+		const dbAddToAgentButton = document.createElement('button');
+		dbAddToAgentButton.type = 'button';
+		dbAddToAgentButton.textContent = localize('aiSuperPanelDbAddToAgentButton', "Add to Current Agent");
+		dbAddToAgentButton.style.padding = '4px 8px';
+		dbAddToAgentButton.style.border = '1px solid var(--vscode-panel-border)';
+		dbAddToAgentButton.style.borderRadius = '4px';
+		dbAddToAgentButton.style.background = 'var(--vscode-button-secondaryBackground)';
+		dbAddToAgentButton.style.color = 'var(--vscode-button-secondaryForeground)';
+		dbAddToAgentButton.setAttribute('aria-label', localize('aiSuperPanelDbAddToAgentButtonAria', "Add latest DB quick query to current agent as LangGraph tool"));
+		dbQuickQueryRow.appendChild(dbAddToAgentButton);
+
+		const dbQuickQueryResults = document.createElement('div');
+		dbQuickQueryResults.setAttribute('role', 'status');
+		dbQuickQueryResults.style.marginTop = '4px';
+		dbQuickQueryResults.textContent = localize('aiSuperPanelDbQuickQueryResultsIdle', "No quick query results yet.");
+		dbMiddlewareForm.appendChild(dbQuickQueryResults);
+
 		const commandStatus = document.createElement('div');
 		commandStatus.tabIndex = 0;
 		commandStatus.setAttribute('role', 'status');
@@ -624,6 +674,26 @@ export class AISuperPanelView extends ViewPane {
 				: localize('aiSuperPanelDbConnectRejected', "DB Middleware connection failed for {0}.", result.provider);
 			status(commandStatus.textContent);
 		}));
+		this._register(addDisposableListener(dbQuickQueryRunButton, 'click', () => {
+			const provider = dbProviderSelect.value as AISuperPanelDbProvider;
+			const result = aiSuperPanelMessageBridge.runDbQuickQuery(provider, dbQuickQueryInput.value);
+			appendTerminalLines(result.output);
+			dbQuickQueryResults.textContent = result.accepted
+				? localize('aiSuperPanelDbQuickQueryRows', "Quick query returned {0} rows.", result.rows.length)
+				: localize('aiSuperPanelDbQuickQueryRejected', "Quick query failed for {0}.", result.provider);
+			commandStatus.textContent = result.accepted
+				? localize('aiSuperPanelDbQuickQueryAccepted', "Quick query executed for {0}.", result.provider)
+				: localize('aiSuperPanelDbQuickQueryRunRejected', "Quick query could not run for {0}.", result.provider);
+			status(commandStatus.textContent);
+		}));
+		this._register(addDisposableListener(dbAddToAgentButton, 'click', () => {
+			const result = aiSuperPanelMessageBridge.addLatestDbQueryAsLangGraphTool();
+			appendTerminalLines(result.output);
+			commandStatus.textContent = result.accepted
+				? localize('aiSuperPanelDbAddToAgentAccepted', "Added quick query tool to current agent: {0}.", result.toolName ?? '')
+				: localize('aiSuperPanelDbAddToAgentRejected', "No quick query available to add to current agent.");
+			status(commandStatus.textContent);
+		}));
 
 		const layout = document.createElement('div');
 		layout.style.display = 'flex';
@@ -661,6 +731,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.actions', "Use Run Agent, Call with Security Scan, or Improve Skill buttons to queue placeholder messages for backend handling. Improve Skill extracts a trace-derived skill from the latest run or API call and adds it to the Skills tab. Call with Security Scan runs a Security Reviewer pre-check before API verification and blocks calls when the scan does not pass."),
 			localize('aiSuperPanel.a11y.help.subAgents', "Builder and Chat tabs include quick buttons for {0} sub-agents at the top of the panel.", AI_SUPER_PANEL_PHASE2_SUB_AGENTS.length),
 			localize('aiSuperPanel.a11y.help.databaseReviewerAutoConnect', "Selecting Database Reviewer automatically switches to the DB Middleware tab and reports connection status."),
+			localize('aiSuperPanel.a11y.help.dbQuickQuery', "In DB Middleware, use Quick Query to run a provider query and read result status, then use Add to Current Agent to inject the latest query as a LangGraph tool."),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
 			localize('aiSuperPanel.a11y.help.memorySearch', "A collapsible memory search section supports USER.md, AGENTS.md, and trajectories sources. Use Show Memory Search to expand, type in Search memory, then Tab to memory results and press Enter to select an item."),
 			localize(

@@ -224,6 +224,20 @@ export interface AISuperPanelDbConnectionResult {
 	readonly output: readonly string[];
 }
 
+export interface AISuperPanelDbQuickQueryResult {
+	readonly provider: AISuperPanelDbProvider;
+	readonly accepted: boolean;
+	readonly query: string;
+	readonly output: readonly string[];
+	readonly rows: readonly string[];
+}
+
+export interface AISuperPanelDbToolInjectionResult {
+	readonly accepted: boolean;
+	readonly toolName?: string;
+	readonly output: readonly string[];
+}
+
 export interface AISuperPanelHookResult {
 	readonly hook: AISuperPanelHookName;
 	readonly status: 'ok' | 'error' | 'pending';
