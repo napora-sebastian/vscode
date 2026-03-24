@@ -366,12 +366,21 @@ export class AISuperPanelView extends ViewPane {
 		const executeTerminalCommand = () => {
 			const terminalResult = aiSuperPanelMessageBridge.runTerminalCommand(terminalInput.value);
 			runHooksForAction('terminalCommand');
+			let silentLoopLine: string | undefined;
+			if (terminalResult.accepted) {
+				const selfImprovementResult = aiSuperPanelMessageBridge.runSilentSelfImprovementLoopFromLatestTrace();
+				renderSkillsGrid(latestSkillsQuery);
+				silentLoopLine = selfImprovementResult.updated
+					? localize('aiSuperPanelSilentLoopUpdated', "hermes:silent-self-improvement:updated:{0}", selfImprovementResult.skill ?? '')
+					: localize('aiSuperPanelSilentLoopNoUpdate', "hermes:silent-self-improvement:no-change");
+			}
 			appendTerminalLines([
 				`terminal:input:${terminalInput.value}`,
 				...terminalResult.output,
+				...(silentLoopLine ? [silentLoopLine] : []),
 			]);
 			commandStatus.textContent = terminalResult.accepted
-				? localize('aiSuperPanelTerminalCommandAccepted', "Terminal command accepted.")
+				? localize('aiSuperPanelTerminalCommandAccepted', "Terminal command accepted. Silent self-improvement loop ran.")
 				: localize('aiSuperPanelTerminalCommandRejected', "Terminal command rejected.");
 		};
 
@@ -587,6 +596,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call with Security Scan."),
 			localize('aiSuperPanel.a11y.help.terminalInput', "Use the terminal command input to run /openswe run \"task\" scaffold commands. The task must not be empty or contain only whitespace."),
+			localize('aiSuperPanel.a11y.help.terminalSelfImprovement', "After each accepted terminal command, a silent Hermes self-improvement loop runs and updates the Skills tab in real time."),
 			localize('aiSuperPanel.a11y.help.commandPalette', "Use the Command Palette to run view commands while this view is focused."),
 		].join('\n');
 

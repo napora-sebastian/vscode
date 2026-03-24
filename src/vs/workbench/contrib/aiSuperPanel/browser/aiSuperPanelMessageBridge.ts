@@ -146,6 +146,21 @@ class AISuperPanelMessageBridge extends Disposable {
 		};
 	}
 
+	runSilentSelfImprovementLoopFromLatestTrace(): { readonly updated: boolean; readonly skill?: string } {
+		const improvement = this.improveSkillFromLatestTrace();
+		if (!improvement || !improvement.added) {
+			return {
+				updated: false,
+				skill: improvement?.skill,
+			};
+		}
+
+		return {
+			updated: true,
+			skill: improvement.skill,
+		};
+	}
+
 	resetForTesting(): void {
 		this._latestTraceId = undefined;
 		this._phase3DerivedSkills.clear();

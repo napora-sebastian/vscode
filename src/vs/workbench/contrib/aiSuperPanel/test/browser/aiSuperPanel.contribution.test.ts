@@ -354,6 +354,29 @@ suite('AI Super Panel Contribution', () => {
 		});
 	});
 
+	test('silent terminal self-improvement loop derives skill from latest terminal trace', () => {
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.runSilentSelfImprovementLoopFromLatestTrace(), {
+			updated: false,
+			skill: undefined,
+		});
+
+		aiSuperPanelMessageBridge.runTerminalCommand('/openswe run "ship phase 3 step 5"');
+		const first = aiSuperPanelMessageBridge.runSilentSelfImprovementLoopFromLatestTrace();
+		assert.deepStrictEqual(first, {
+			updated: true,
+			skill: 'Trace Skill: trace:run:ship-phase-3-step-5',
+		});
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPhase2Skills('trace:run:ship-phase-3-step-5'), [
+			'Trace Skill: trace:run:ship-phase-3-step-5',
+		]);
+
+		const second = aiSuperPanelMessageBridge.runSilentSelfImprovementLoopFromLatestTrace();
+		assert.deepStrictEqual(second, {
+			updated: false,
+			skill: 'Trace Skill: trace:run:ship-phase-3-step-5',
+		});
+	});
+
 	test('message bridge exposes post-run actions and accepts related commands', () => {
 		assert.deepStrictEqual(aiSuperPanelMessageBridge.getPostRunActions(), [
 			'createAutoPr',
