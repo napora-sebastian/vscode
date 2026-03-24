@@ -5,7 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelMemoryEntry, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills, filterPhase3MemoryEntries } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelHermesUserModel, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelMemoryEntry, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills, filterPhase3MemoryEntries } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
@@ -21,6 +21,11 @@ class AISuperPanelMessageBridge extends Disposable {
 	readonly onDidSendMessage = this._onDidSendMessage.event;
 	private _latestTraceId: string | undefined;
 	private readonly _phase3DerivedSkills = new Set<string>();
+	private readonly _phase3HermesUserModel: AISuperPanelHermesUserModel = {
+		profile: 'AI-first IDE builder',
+		workflow: 'Prefer focused, validated, minimal-change iterations',
+		improvementLoop: 'Learn from traces and convert successful patterns into reusable skills',
+	};
 
 	constructor() {
 		super();
@@ -80,6 +85,22 @@ class AISuperPanelMessageBridge extends Disposable {
 
 	getPhase3MemoryEntries(query = ''): readonly AISuperPanelMemoryEntry[] {
 		return filterPhase3MemoryEntries(query, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES);
+	}
+
+	getPhase3HermesChatContext(): {
+		readonly userModel: AISuperPanelHermesUserModel;
+		readonly sessionMemory: readonly AISuperPanelMemoryEntry[];
+		readonly serializedContext: string;
+	} {
+		const sessionMemory = this.getPhase3MemoryEntries('');
+		return {
+			userModel: this._phase3HermesUserModel,
+			sessionMemory,
+			serializedContext: JSON.stringify({
+				userModel: this._phase3HermesUserModel,
+				sessionMemory,
+			}),
+		};
 	}
 
 	/**

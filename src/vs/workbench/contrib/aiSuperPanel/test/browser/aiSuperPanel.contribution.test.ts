@@ -423,6 +423,20 @@ suite('AI Super Panel Contribution', () => {
 		]);
 	});
 
+	test('message bridge exposes hermes chat context with full session memory', () => {
+		const context = aiSuperPanelMessageBridge.getPhase3HermesChatContext();
+		assert.deepStrictEqual(context.userModel, {
+			profile: 'AI-first IDE builder',
+			workflow: 'Prefer focused, validated, minimal-change iterations',
+			improvementLoop: 'Learn from traces and convert successful patterns into reusable skills',
+		});
+		assert.deepStrictEqual(context.sessionMemory, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES);
+		assert.deepStrictEqual(JSON.parse(context.serializedContext), {
+			userModel: context.userModel,
+			sessionMemory: context.sessionMemory,
+		});
+	});
+
 	test('message bridge runs phase 2 hooks for actions', () => {
 		assert.deepStrictEqual(aiSuperPanelMessageBridge.runPhase2Hooks('runAgent'), [
 			{ hook: 'session-start', status: 'ok', action: 'runAgent' },

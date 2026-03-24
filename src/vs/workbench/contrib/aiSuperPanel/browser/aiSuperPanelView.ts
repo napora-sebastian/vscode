@@ -265,6 +265,7 @@ export class AISuperPanelView extends ViewPane {
 		terminalRunButton.style.color = 'var(--vscode-button-foreground)';
 		terminalRunButton.setAttribute('aria-label', localize('aiSuperPanelTerminalRunButtonAria', "Run terminal command"));
 		terminalInputRow.appendChild(terminalRunButton);
+		const phase3HermesChatContext = aiSuperPanelMessageBridge.getPhase3HermesChatContext();
 
 		const setActiveTab = (tab: AISuperPanelTab, focusSelectedTab = false) => {
 			activeTab = tab;
@@ -282,6 +283,14 @@ export class AISuperPanelView extends ViewPane {
 			subAgentBar.style.display = shouldShowPhase2SubAgentBar(tab) ? 'flex' : 'none';
 			skillsSection.style.display = shouldShowPhase2SkillsGrid(tab) ? 'block' : 'none';
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
+			if (tab === 'Chat') {
+				contentLabel.textContent = localize(
+					'aiSuperPanelChatContextPlaceholder',
+					"Active tab: Chat. Hermes context loaded with user model profile \"{0}\" and {1} session memory entries.",
+					phase3HermesChatContext.userModel.profile,
+					phase3HermesChatContext.sessionMemory.length
+				);
+			}
 			if (focusSelectedTab) {
 				status(localize('aiSuperPanelTabChangedAria', "Switched to {0} tab.", tab));
 			}
@@ -556,6 +565,7 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 
 	getProvider(_accessor: ServicesAccessor): AccessibleContentProvider {
 		const focusedElement = getActiveElement() as HTMLElement | null;
+		const phase3HermesChatContext = aiSuperPanelMessageBridge.getPhase3HermesChatContext();
 		const helpText = [
 			localize('aiSuperPanel.a11y.help.header', "Accessibility Help: AI Super Panel"),
 			localize('aiSuperPanel.a11y.help.description', "The AI Super Panel is a placeholder scaffold view with tabs and a 70/30 content layout."),
@@ -565,6 +575,14 @@ export class AISuperPanelAccessibilityHelp implements IAccessibleViewImplementat
 			localize('aiSuperPanel.a11y.help.databaseReviewerAutoConnect', "Selecting Database Reviewer automatically switches to the DB Middleware tab and reports connection status."),
 			localize('aiSuperPanel.a11y.help.skillsGrid', "The Skills tab includes a searchable skills grid with {0} placeholder skills.", AI_SUPER_PANEL_PHASE2_SKILLS.length),
 			localize('aiSuperPanel.a11y.help.memorySearch', "A collapsible memory search section supports USER.md, AGENTS.md, and trajectories sources. Use Show Memory Search to expand, type in Search memory, then Tab to memory results and press Enter to select an item."),
+			localize(
+				'aiSuperPanel.a11y.help.chatHermesContext',
+				"The Chat tab always includes the Hermes user model with profile \"{0}\", workflow \"{1}\", and improvement loop \"{2}\", plus {3} session memory entries.",
+				phase3HermesChatContext.userModel.profile,
+				phase3HermesChatContext.userModel.workflow,
+				phase3HermesChatContext.userModel.improvementLoop,
+				phase3HermesChatContext.sessionMemory.length
+			),
 			localize('aiSuperPanel.a11y.help.hooks', "A hook status banner at the top reports automatic hook runs for panel actions: {0}.", phase2HooksDisplayLabel),
 			localize('aiSuperPanel.a11y.help.postRunActions', "After running an agent, Create Auto-PR and Spawn Sub-agents actions become available."),
 			localize('aiSuperPanel.a11y.help.apiInput', "Use the endpoint or task input to define the API Caller payload before running Call with Security Scan."),

@@ -114,6 +114,12 @@ export interface AISuperPanelMemoryEntry {
 	readonly snippet: string;
 }
 
+export interface AISuperPanelHermesUserModel {
+	readonly profile: string;
+	readonly workflow: string;
+	readonly improvementLoop: string;
+}
+
 export const AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES: readonly AISuperPanelMemoryEntry[] = [
 	{
 		source: 'USER.md',
