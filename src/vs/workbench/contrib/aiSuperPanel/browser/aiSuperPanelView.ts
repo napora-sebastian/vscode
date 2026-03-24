@@ -22,7 +22,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewletViewOptions } from '../../../browser/parts/views/viewsViewlet.js';
 import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldAutoShowImproveSkillAction, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
+import { AI_SUPER_PANEL_PHASE0_TABS, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES, AI_SUPER_PANEL_PHASE4_DB_PROVIDERS, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, AI_SUPER_PANEL_VIEW_ID, AISuperPanelCommand, AISuperPanelDbProvider, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelTab, shouldAutoOpenDbMiddlewareForSubAgent, shouldAutoShowImproveSkillAction, shouldShowPhase2SkillsGrid, shouldShowPhase2SubAgentBar } from '../common/aiSuperPanel.js';
 import { aiSuperPanelMessageBridge } from './aiSuperPanelMessageBridge.js';
 
 const SEARCH_DEBOUNCE_MS = 200;
@@ -165,6 +165,75 @@ export class AISuperPanelView extends ViewPane {
 		apiInput.setAttribute('aria-label', localize('aiSuperPanelApiInputLabel', "Endpoint or task to call and verify"));
 		apiCallRow.appendChild(apiInput);
 
+		const dbMiddlewareForm = document.createElement('div');
+		dbMiddlewareForm.setAttribute('role', 'group');
+		dbMiddlewareForm.setAttribute('aria-label', localize('aiSuperPanelDbMiddlewareFormAria', "DB Middleware Connection Form"));
+		dbMiddlewareForm.style.display = 'none';
+		dbMiddlewareForm.style.gap = '8px';
+		dbMiddlewareForm.style.marginTop = '8px';
+		dbMiddlewareForm.style.padding = '8px';
+		dbMiddlewareForm.style.border = '1px solid var(--vscode-panel-border)';
+		dbMiddlewareForm.style.borderRadius = '4px';
+		dbMiddlewareForm.style.background = 'var(--vscode-editor-background)';
+		topPane.appendChild(dbMiddlewareForm);
+
+		const dbProviderLabel = document.createElement('label');
+		dbProviderLabel.textContent = localize('aiSuperPanelDbProviderVisualLabel', "Provider");
+		dbProviderLabel.style.display = 'block';
+		dbMiddlewareForm.appendChild(dbProviderLabel);
+
+		const dbProviderSelect = document.createElement('select');
+		dbProviderSelect.id = 'ai-super-panel-db-provider';
+		dbProviderSelect.setAttribute('aria-label', localize('aiSuperPanelDbProviderLabel', "Database Provider"));
+		dbProviderSelect.style.padding = '4px 8px';
+		dbProviderSelect.style.border = '1px solid var(--vscode-panel-border)';
+		dbProviderSelect.style.borderRadius = '4px';
+		dbProviderLabel.htmlFor = dbProviderSelect.id;
+		for (const provider of AI_SUPER_PANEL_PHASE4_DB_PROVIDERS) {
+			const option = document.createElement('option');
+			option.value = provider;
+			option.text = provider;
+			dbProviderSelect.appendChild(option);
+		}
+		dbMiddlewareForm.appendChild(dbProviderSelect);
+
+		const dbConnectionLabel = document.createElement('label');
+		dbConnectionLabel.textContent = localize('aiSuperPanelDbConnectionVisualLabel', "Connection String");
+		dbConnectionLabel.style.display = 'block';
+		dbConnectionLabel.style.marginTop = '4px';
+		dbMiddlewareForm.appendChild(dbConnectionLabel);
+
+		const dbConnectionInput = document.createElement('input');
+		dbConnectionInput.type = 'text';
+		dbConnectionInput.id = 'ai-super-panel-db-connection';
+		dbConnectionInput.placeholder = localize('aiSuperPanelDbConnectionPlaceholder', "Connection string");
+		dbConnectionInput.setAttribute('aria-label', localize('aiSuperPanelDbConnectionAria', "Database Connection String"));
+		dbConnectionInput.setAttribute('aria-describedby', 'ai-super-panel-db-connection-help');
+		dbConnectionInput.style.flex = '1';
+		dbConnectionInput.style.padding = '4px 8px';
+		dbConnectionInput.style.border = '1px solid var(--vscode-panel-border)';
+		dbConnectionInput.style.borderRadius = '4px';
+		dbConnectionLabel.htmlFor = dbConnectionInput.id;
+		dbMiddlewareForm.appendChild(dbConnectionInput);
+
+		const dbConnectionHelp = document.createElement('div');
+		dbConnectionHelp.id = 'ai-super-panel-db-connection-help';
+		dbConnectionHelp.textContent = localize('aiSuperPanelDbConnectionHelp', "Enter provider-specific connection strings, for example postgresql://..., bolt://..., or https://...");
+		dbConnectionHelp.style.fontSize = '11px';
+		dbConnectionHelp.style.opacity = '0.85';
+		dbMiddlewareForm.appendChild(dbConnectionHelp);
+
+		const dbConnectButton = document.createElement('button');
+		dbConnectButton.type = 'button';
+		dbConnectButton.textContent = localize('aiSuperPanelDbConnectButton', "Connect");
+		dbConnectButton.style.padding = '4px 8px';
+		dbConnectButton.style.border = '1px solid var(--vscode-panel-border)';
+		dbConnectButton.style.borderRadius = '4px';
+		dbConnectButton.style.background = 'var(--vscode-button-background)';
+		dbConnectButton.style.color = 'var(--vscode-button-foreground)';
+		dbConnectButton.setAttribute('aria-label', localize('aiSuperPanelDbConnectButtonAria', "Connect DB Middleware provider"));
+		dbMiddlewareForm.appendChild(dbConnectButton);
+
 		const commandStatus = document.createElement('div');
 		commandStatus.tabIndex = 0;
 		commandStatus.setAttribute('role', 'status');
@@ -280,6 +349,7 @@ export class AISuperPanelView extends ViewPane {
 			if (tab !== 'Builder') {
 				postRunActionBar.style.display = 'none';
 			}
+			dbMiddlewareForm.style.display = tab === 'DB Middleware' ? 'flex' : 'none';
 			subAgentBar.style.display = shouldShowPhase2SubAgentBar(tab) ? 'flex' : 'none';
 			skillsSection.style.display = shouldShowPhase2SkillsGrid(tab) ? 'block' : 'none';
 			contentLabel.textContent = localize('aiSuperPanelTabContentPlaceholder', "Active tab: {0}. Panel content placeholder (70%).", tab);
@@ -544,6 +614,15 @@ export class AISuperPanelView extends ViewPane {
 				commandStatus.textContent = memorySelected;
 				status(memorySelected);
 			}
+		}));
+		this._register(addDisposableListener(dbConnectButton, 'click', () => {
+			const provider = dbProviderSelect.value as AISuperPanelDbProvider;
+			const result = aiSuperPanelMessageBridge.connectDbMiddleware(provider, dbConnectionInput.value);
+			appendTerminalLines(result.output);
+			commandStatus.textContent = result.accepted
+				? localize('aiSuperPanelDbConnectAccepted', "DB Middleware connected to {0}.", result.provider)
+				: localize('aiSuperPanelDbConnectRejected', "DB Middleware connection failed for {0}.", result.provider);
+			status(commandStatus.textContent);
 		}));
 
 		const layout = document.createElement('div');

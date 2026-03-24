@@ -108,6 +108,12 @@ export const AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES = [
 	'trajectories',
 ] as const;
 
+export const AI_SUPER_PANEL_PHASE4_DB_PROVIDERS = [
+	'Postgres',
+	'Neo4j',
+	'Vector DB',
+] as const;
+
 export interface AISuperPanelMemoryEntry {
 	readonly source: typeof AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES[number];
 	readonly title: string;
@@ -147,6 +153,7 @@ export type AISuperPanelTab = typeof AI_SUPER_PANEL_PHASE0_TABS[number];
 export type AISuperPanelSubAgent = typeof AI_SUPER_PANEL_PHASE2_SUB_AGENTS[number];
 export type AISuperPanelHookName = typeof AI_SUPER_PANEL_PHASE2_HOOKS[number];
 export type AISuperPanelHookAction = typeof AI_SUPER_PANEL_PHASE2_HOOK_ACTIONS[number];
+export type AISuperPanelDbProvider = typeof AI_SUPER_PANEL_PHASE4_DB_PROVIDERS[number];
 
 export function shouldShowPhase2SubAgentBar(tab: AISuperPanelTab): boolean {
 	return tab === 'Builder' || tab === 'Chat';
@@ -207,6 +214,12 @@ export interface AISuperPanelApiVerificationResult {
 }
 
 export interface AISuperPanelTerminalCommandResult {
+	readonly accepted: boolean;
+	readonly output: readonly string[];
+}
+
+export interface AISuperPanelDbConnectionResult {
+	readonly provider: AISuperPanelDbProvider;
 	readonly accepted: boolean;
 	readonly output: readonly string[];
 }

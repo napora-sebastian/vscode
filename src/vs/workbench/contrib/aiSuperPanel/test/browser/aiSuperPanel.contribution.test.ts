@@ -13,6 +13,7 @@ import {
 	AI_SUPER_PANEL_PHASE2_SUB_AGENTS,
 	AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES,
 	AI_SUPER_PANEL_PHASE3_MEMORY_SOURCES,
+	AI_SUPER_PANEL_PHASE4_DB_PROVIDERS,
 	AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL,
 	AI_SUPER_PANEL_SECURITY_REVIEWER_PASS,
 	AI_SUPER_PANEL_VIEW_CONTAINER_ID,
@@ -200,6 +201,14 @@ suite('AI Super Panel Contribution', () => {
 		]);
 	});
 
+	test('defines phase 4 db middleware providers', () => {
+		assert.deepStrictEqual(AI_SUPER_PANEL_PHASE4_DB_PROVIDERS, [
+			'Postgres',
+			'Neo4j',
+			'Vector DB',
+		]);
+	});
+
 	test('filters phase 3 memory entries by source, title, and snippet', () => {
 		assert.deepStrictEqual(filterPhase3MemoryEntries(''), AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES);
 		assert.deepStrictEqual(filterPhase3MemoryEntries('user.md').map(entry => entry.title), [
@@ -320,6 +329,41 @@ suite('AI Super Panel Contribution', () => {
 			'security-reviewer:scan',
 			AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL,
 		]);
+	});
+
+	test('message bridge connects db middleware providers', () => {
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.connectDbMiddleware('Postgres', 'postgresql://localhost:5432/app'), {
+			provider: 'Postgres',
+			accepted: true,
+			output: [
+				'db-middleware:connect:start:Postgres',
+				'db-middleware:connect:target:postgresql://localhost:5432/app',
+				'db-middleware:connect:ready:Postgres',
+			],
+		});
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.connectDbMiddleware('Neo4j', 'bolt://localhost:7687'), {
+			provider: 'Neo4j',
+			accepted: true,
+			output: [
+				'db-middleware:connect:start:Neo4j',
+				'db-middleware:connect:target:bolt://localhost:7687',
+				'db-middleware:connect:ready:Neo4j',
+			],
+		});
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.connectDbMiddleware('Vector DB', 'https://localhost:6333'), {
+			provider: 'Vector DB',
+			accepted: true,
+			output: [
+				'db-middleware:connect:start:Vector DB',
+				'db-middleware:connect:target:https://localhost:6333',
+				'db-middleware:connect:ready:Vector DB',
+			],
+		});
+		assert.deepStrictEqual(aiSuperPanelMessageBridge.connectDbMiddleware('Vector DB', '   '), {
+			provider: 'Vector DB',
+			accepted: false,
+			output: ['db-middleware:error:Vector DB: connection string required'],
+		});
 	});
 
 	test('message bridge supports /openswe run terminal command scaffold', () => {

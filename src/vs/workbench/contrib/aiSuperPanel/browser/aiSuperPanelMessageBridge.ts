@@ -5,7 +5,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
-import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelHermesUserModel, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelMemoryEntry, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills, filterPhase3MemoryEntries } from '../common/aiSuperPanel.js';
+import { AISuperPanelApiVerificationResult, AISuperPanelCommand, AISuperPanelCommandMessage, AISuperPanelCommandResult, AISuperPanelDbConnectionResult, AISuperPanelDbProvider, AISuperPanelHermesUserModel, AISuperPanelHookAction, AISuperPanelHookResult, AISuperPanelMemoryEntry, AISuperPanelSubAgent, AISuperPanelTerminalCommandResult, AI_SUPER_PANEL_PHASE2_HOOKS, AI_SUPER_PANEL_PHASE2_SKILLS, AI_SUPER_PANEL_PHASE2_SUB_AGENTS, AI_SUPER_PANEL_PHASE3_MEMORY_ENTRIES, AI_SUPER_PANEL_SECURITY_REVIEWER_FAIL, AI_SUPER_PANEL_SECURITY_REVIEWER_PASS, filterPhase2Skills, filterPhase3MemoryEntries } from '../common/aiSuperPanel.js';
 
 const DEFAULT_TASK = 'defaultTask';
 const DEFAULT_ENDPOINT = 'defaultEndpoint';
@@ -207,6 +207,27 @@ class AISuperPanelMessageBridge extends Disposable {
 		return {
 			accepted: true,
 			output: this.runBuilderTask(task),
+		};
+	}
+
+	connectDbMiddleware(provider: AISuperPanelDbProvider, connection: string): AISuperPanelDbConnectionResult {
+		const normalizedConnection = connection.trim();
+		if (!normalizedConnection) {
+			return {
+				provider,
+				accepted: false,
+				output: [`db-middleware:error:${provider}: connection string required`],
+			};
+		}
+
+		return {
+			provider,
+			accepted: true,
+			output: [
+				`db-middleware:connect:start:${provider}`,
+				`db-middleware:connect:target:${normalizedConnection}`,
+				`db-middleware:connect:ready:${provider}`,
+			],
 		};
 	}
 }
